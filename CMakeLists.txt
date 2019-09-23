@@ -4,9 +4,7 @@ project(directory_test)
 include_directories(include)
 
 #Can manually add the sources using the set command as follows:
-set(SOURCES src/watch.cpp)
-
-set (OpenCV_DIR /home/utku/opencv4/opencv/build/)
+set(SOURCES src/watch.cpp src/objectdetection.cpp src/md5_helper.cpp)
 
 find_package(OpenCV REQUIRED)
 
@@ -18,21 +16,21 @@ message(STATUS "    source path: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 #For the shared library:
 set ( PROJECT_LINK_LIBS ${OpenCV_LIBS} )
-include_directories(/usr/local/include/opencv ${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/src/json)
 
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
   message(STATUS "dir='${dir}'")
 endforeach()
 
-link_directories( /usr/local/lib /usr/lib/x86_64-linux-gnu)
+link_directories( ${OpenCV_LIBS} )
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -Wall -Wextra -pedantic -std=c++14 -g")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
 
-file(GLOB SOURCES "src/watch.cpp")
+file(GLOB SOURCES "src/watch.cpp" "src/objectdetection.cpp" "src/md5_helper.cpp")
 
-add_executable(Manager ${SOURCES})
+add_executable(watch ${SOURCES})
 
 # Link your application with OpenCV libraries
-target_link_libraries(watch ${OpenCV_LIBS} tensorflow ssl crypto)
+target_link_libraries(watch ${OpenCV_LIBS} ssl crypto)

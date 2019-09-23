@@ -1,9 +1,9 @@
 /*
- * Copyright 2019 SU Technology Ltd. All rights reserved.
+ * Copyright 2018 SU Technology Ltd. All rights reserved.
  *
  * MIT License
  *
- * Copyright (c) 2019 SU Technology
+ * Copyright (c) 2018 SU Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
+ * Some parts of this file has been inspired and influenced from this link :
+ * https://www.learnopencv.com/deep-learning-based-object-detection
+ * -and-instance-segmentation-using-mask-r-cnn-in-opencv-python-c/
+ *
  */
-
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -38,6 +41,10 @@ int main()
 {
 	setlogmask (LOG_UPTO (LOG_NOTICE));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+
+	ObjectDetector obj;
+	obj.filename = "./demo.mp4";
+	obj.loop();
 
 	closelog ();
 }
