@@ -285,6 +285,7 @@ void ObjectDetector::object_tracker_with_new_frame(cv::Mat &frame, std::vector<c
 
 	std::vector<cv::Rect2d> tracked_objects = multiTracker->getObjects();
 
+	multiTracker->update(frame);
 	for(size_t i=0;i<outs.size();i++) {
 		// Scan through all the bounding boxes output from the network and keep only the
 		// ones with high confidence scores. Assign the box's class label as the class
