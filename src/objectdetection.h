@@ -23,12 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 */
-#include <opencv2/opencv.hpp>
-#include <opencv2/dnn.hpp>
-//#include <opencv2/tracking.hpp>
-#include <opencv2/tracking/tracker.hpp>
-#include <string>
-#include "json.hpp"
+
+#ifndef OBJECTDETECTION_H
+#define OBJECTDETECTION_H
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -36,37 +33,44 @@
 #include <vector>
 #include <string>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/dnn.hpp>
 
-using json = nlohmann::json;
+#define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
+//#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 
 class ObjectDetector {
 public:
+	static ObjectDetector* GenerateDetector(std::string objectdetector_type);
+
+	void setup_model_for_detector(std::string class_definition_file, std::string model_config_file, std::string model_weights_file);
+	void load_model_for_detector();
+
+	std::vector < std::string > get_class_labels();
+	float get_confidence_threshold();
+	float get_nms_threshold();
+	cv::dnn::Net get_net();
+
+	virtual std::vector<cv::Mat> process_frame(cv::Mat &frame) = 0;
+protected :
 	ObjectDetector();
 	~ObjectDetector();
-	void process_frame(cv::Mat &frame, int framecount, std::string hash_video);
-	void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
-	void post_process(cv::Mat& frame, const std::vector<cv::Mat>& outs, int framecount, std::string hash_video);
-	void loop();
-	//void generate_json(cv::Mat &frame, const int &classId, const int &framecount, std::string frame_md5, std::string video_md5);
-	std::vector<std::string> getOutputsNames();
-	void object_tracker_with_new_frame(cv::Mat &frame, std::vector<cv::Mat> outs);
-	void object_tracker_update_only(cv::Mat &frame);
+	virtual void post_process(cv::Mat& frame, std::vector<cv::Mat> detection) = 0;
+	virtual void draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame) = 0;
 
-	std::string filename;
 private:
-	// Initialize the parameters
-	float confidence_threshold; // Confidence threshold
-	float nmsThreshold; // non-maximum suppression threshold
-	cv::dnn::Net net;
 	std::vector < std::string > classes;
 	std::vector<cv::Scalar> colors;
 	// Give the configuration and weight files for the model
-	std::string class_definition_file;
 	std::string colors_file;
-	std::string model_config_file;
-	std::string model_weights_file;
+	std::string m_class_definition_file;
+	std::string m_model_config_file;
+	std::string m_model_weights_file;
 
-	cv::Ptr<cv::MultiTracker> multiTracker;
+	// Initialize the parameters
+	float m_confidence_threshold; // Confidence threshold
+	float m_nms_threshold; // non-maximum suppression threshold
 
-	json j;
+	cv::dnn::Net net;
 };
+#endif /* OBJECTDETECTION_H */

@@ -30,18 +30,21 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include "objectdetection.h"
-
 #include <syslog.h>
+
+#include "objectdetection.h"
+#include "objecttracker.h"
+#include "camera_manager.h"
 
 int main()
 {
 	setlogmask (LOG_UPTO (LOG_NOTICE));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
-	ObjectDetector obj;
-	obj.filename = "./demo.mp4";
-	obj.loop();
+	ObjectDetector *object_detector = ObjectDetector::GenerateDetector("Yolo");
+	ObjectTracker *object_tracker = new ObjectTracker("KCF");
+	Camera camera("./demo.mp4");
+	camera.loop(object_detector, object_tracker);
 
 	closelog ();
 }

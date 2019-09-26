@@ -28,6 +28,83 @@
  * -and-instance-segmentation-using-mask-r-cnn-in-opencv-python-c/
  *
  */
+#include <string>
+#include <syslog.h>
+
+#include "objectdetection_yolo.h"
+#include "objectdetection_yolotiny.h"
+
+ObjectDetector* ObjectDetector::GenerateDetector(std::string objectdetector_type_string)
+{
+	if (objectdetector_type_string == "Yolo")
+		return new ObjectDetector_Yolo;
+	else if (objectdetector_type_string == "Yolotiny")
+		return new ObjectDetector_YoloTiny;
+
+	return NULL;
+}
+
+ObjectDetector::ObjectDetector() : 	m_confidence_threshold(0.5), m_nms_threshold(0.4) {}
+
+ObjectDetector::~ObjectDetector() {}
+
+void ObjectDetector::setup_model_for_detector(std::string class_definition_file, std::string model_config_file, std::string model_weights_file)
+{
+	m_model_config_file = model_config_file;
+	m_model_weights_file = model_weights_file;
+	m_class_definition_file = class_definition_file;
+}
+
+void ObjectDetector::load_model_for_detector()
+{
+	std::ifstream classes_file_stream(m_class_definition_file.c_str());
+	std::string class_file_line;
+
+	while (getline(classes_file_stream, class_file_line)) {
+		classes.push_back(class_file_line);
+		syslog (LOG_NOTICE, "Class Labels : %s", class_file_line.c_str());
+	}
+
+	std::ifstream colors_file_stream(colors_file.c_str());
+	std::string colors_file_line;
+
+	while (getline(colors_file_stream, colors_file_line)) {
+		std::stringstream ss(colors_file_line);
+		double red, green, blue;
+		ss >> red >> green >> blue;
+		colors.push_back(cv::Scalar(red, green, blue, 255.0));
+		syslog (LOG_NOTICE, "Colors.txt Colors : %f, %f, %f", red, green, blue);
+	}
+
+	// Load the network for the model
+	syslog (LOG_NOTICE, "ObjectDetector Loading Network");
+	net = cv::dnn::readNetFromDarknet(m_model_config_file, m_model_weights_file);
+	net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+	net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+	syslog (LOG_NOTICE, "ObjectDetector Network Loaded");
+}
+
+std::vector < std::string > ObjectDetector::get_class_labels()
+{
+	return classes;
+}
+
+float ObjectDetector::get_confidence_threshold()
+{
+	return m_confidence_threshold;
+}
+
+float ObjectDetector::get_nms_threshold()
+{
+	return m_nms_threshold;
+}
+
+cv::dnn::Net ObjectDetector::get_net()
+{
+	return net;
+}
+
+#if 0
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -41,16 +118,17 @@
 
 #define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
 #define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
-#define CATDETECTOR_ENABLE_CAPTURED_FRAMES_TO_JSON
 
-#define inpHeight 416
-#define inpWidth 416
+#define inpHeight 1280
+#define inpWidth 720
 
-#define DEEP_LEARNING_MODEL_YOLO_TINY
+//#define DEEP_LEARNING_MODEL_YOLO_TINY
 //#define DEEP_LEARNING_MODEL_YOLO
+#define DEEP_LEARNING_MODEL_SSD_CAFFE
+//#define DEEP_LEARNING_MODEL_SSD_TENSORFLOW
 
-ObjectDetector::ObjectDetector() : confidence_threshold(0.5),
-	nmsThreshold(0.4),
+ObjectDetector::ObjectDetector() : get_confidence_threshold(0.5),
+		get_nms_threshold(0.4),
 	colors_file("../data/colors.txt"),
 #ifdef DEEP_LEARNING_MODEL_YOLO
 	class_definition_file("../data/yolo/coco.names"),
@@ -61,6 +139,16 @@ ObjectDetector::ObjectDetector() : confidence_threshold(0.5),
 	class_definition_file("../data/yolo/coco.names"),
 	model_config_file("../data/yolo/yolov3.cfg"),
 	model_weights_file("../data/yolo/yolov3.weights")
+#endif
+#ifdef DEEP_LEARNING_MODEL_SSD_CAFFE
+	class_definition_file("../data/ssdcaffe/coco.names"),
+	model_config_file("../data/ssdcaffe/deploy.prototxt"),
+	model_weights_file("../data/ssdcaffe/res10_300x300_ssd_iter_140000_fp16.caffemodel")
+#endif
+#ifdef DEEP_LEARNING_MODEL_SSD_TENSORFLOW
+	class_definition_file("../data/ssdtensorflow/coco.names"),
+	model_config_file("../data/ssdtensorflow/opencv_face_detector.pbtxt"),
+	model_weights_file("../data/ssdtensorflow/opencv_face_detector_uint8.pb")
 #endif
 {
 	syslog (LOG_NOTICE, "ObjectDetector Constructor Begin");
@@ -86,7 +174,15 @@ ObjectDetector::ObjectDetector() : confidence_threshold(0.5),
 
 	// Load the network for the model
 	syslog (LOG_NOTICE, "ObjectDetector Loading Network");
+#if defined DEEP_LEARNING_MODEL_YOLO && defined DEEP_LEARNING_MODEL_YOLO_TINY
 	net = cv::dnn::readNetFromDarknet(model_config_file, model_weights_file);
+#endif
+#ifdef DEEP_LEARNING_MODEL_SSD_CAFFE
+	net = cv::dnn::readNetFromCaffe(model_config_file, model_weights_file);
+#endif
+#ifdef DEEP_LEARNING_MODEL_SSD_TENSORFLOW
+	net = cv::dnn::readNetFromTensorflow(model_config_file, model_weights_file);
+#endif
 	net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
 	net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 	syslog (LOG_NOTICE, "ObjectDetector Network Loaded");
@@ -99,7 +195,7 @@ ObjectDetector::ObjectDetector() : confidence_threshold(0.5),
 ObjectDetector::~ObjectDetector() {
 }
 
-void ObjectDetector::drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame)
+void ObjectDetector::draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame)
 {
 	syslog(LOG_NOTICE, "ObjectDetector::draw_box Begin");
 	//Draw a rectangle displaying the bounding box
@@ -122,68 +218,27 @@ void ObjectDetector::drawPred(int classId, float conf, int left, int top, int ri
 	syslog(LOG_NOTICE, "ObjectDetector::draw_box End");
 }
 
-#if 0
-void ObjectDetector::generate_json(cv::Mat &frame, const int &classId, const int &framecount, std::string frame_md5, std::string video_md5)
-{
-	syslog(LOG_NOTICE, "ObjectDetector::generate_json Begin");
-
-	json local_j;
-
-	local_j["class"] = classes[classId].c_str();
-	local_j["frame"] = framecount;
-	local_j["hash-frame"] = frame_md5;
-	local_j["hash-video"] = video_md5;
-
-	std::vector<uchar> buffer;
-#define MB 1024 * 1024
-	buffer.resize(200*MB);
-	cv::imencode(".png", frame, buffer);
-	local_j["image"] = buffer;
-	j.push_back(local_j);
-
-	syslog(LOG_NOTICE, "ObjectDetector::generate_json End");
-}
-#endif
-
-void ObjectDetector::post_process(cv::Mat& frame, const std::vector<cv::Mat>& outs, int framecount, std::string hash_video)
+void ObjectDetector::post_process(cv::Mat& frame, cv::Mat& detection)
 {
 	syslog(LOG_NOTICE, "ObjectDetector::post_process Begin");
 
-	std::vector<int> classIds;
-	std::vector<float> confidences;
-	std::vector<cv::Rect> boxes;
+	cv::Mat detectionMat(detection.size[2], detection.size[3], CV_32F, detection.ptr<float>());
 
-	for (size_t i = 0; i < outs.size(); ++i)
+	for(int i = 0; i < detectionMat.rows; i++)
 	{
-		// Scan through all the bounding boxes output from the network and keep only the
-		// ones with high confidence scores. Assign the box's class label as the class
-		// with the highest score for the box.
-		float* data = (float*)outs[i].data;
-		for (int j = 0; j < outs[i].rows; ++j, data += outs[i].cols)
+		float confidence = detectionMat.at<float>(i, 2);
+
+		if(confidence > confidence_threshold)
 		{
-			cv::Mat scores = outs[i].row(j).colRange(5, outs[i].cols);
-			cv::Point classIdPoint;
-			double confidence;
-			// Get the value and location of the maximum score
-			cv::minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
-			if (confidence > confidence_threshold)
-			{
-				int centerX = (int)(data[0] * frame.cols);
-				int centerY = (int)(data[1] * frame.rows);
-				int width = (int)(data[2] * frame.cols);
-				int height = (int)(data[3] * frame.rows);
-				int left = centerX - width / 2;
-				int top = centerY - height / 2;
+			int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * frame.size().width);
+			int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * frame.size().height);
+			int x2 = static_cast<int>(detectionMat.at<float>(i, 5) * frame.size().width);
+			int y2 = static_cast<int>(detectionMat.at<float>(i, 6) * frame.size().height);
 
-				classIds.push_back(classIdPoint.x);
-				confidences.push_back((float)confidence);
-				boxes.push_back(cv::Rect(left, top, width, height));
-
-				//generate_json(frame, classIds[i], framecount, "", hash_video);
-			}
+			cv::rectangle(frame, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0),2, 4);
 		}
 	}
-
+#if 0
 	// Perform non maximum suppression to eliminate redundant overlapping boxes with
 	// lower confidences
 	std::vector<int> indices;
@@ -195,6 +250,7 @@ void ObjectDetector::post_process(cv::Mat& frame, const std::vector<cv::Mat>& ou
 		drawPred(classIds[idx], confidences[idx], box.x, box.y,
 				box.x + box.width, box.y + box.height, frame);
 	}
+#endif
 	syslog(LOG_NOTICE, "ObjectDetector::post_process End");
 }
 
@@ -218,111 +274,7 @@ std::vector<std::string> ObjectDetector::getOutputsNames()
 	return names;
 }
 
-std::vector<std::string> trackerTypes = {"BOOSTING", "MIL", "KCF", "TLD", "MEDIANFLOW", "GOTURN", "MOSSE", "CSRT"};
-
-cv::Ptr<cv::Tracker> createTrackerByName(std::string trackerType)
-{
-	cv::Ptr<cv::Tracker> tracker;
-	if (trackerType ==  trackerTypes[0])
-		tracker = cv::TrackerBoosting::create();
-	else if (trackerType == trackerTypes[1])
-		tracker =cv::TrackerMIL::create();
-	else if (trackerType == trackerTypes[2])
-		tracker = cv::TrackerKCF::create();
-	else if (trackerType == trackerTypes[3])
-		tracker = cv::TrackerTLD::create();
-	else if (trackerType == trackerTypes[4])
-		tracker = cv::TrackerGOTURN::create();
-	else if (trackerType == trackerTypes[6])
-		tracker = cv::TrackerMOSSE::create();
-	else if (trackerType == trackerTypes[7])
-		tracker = cv::TrackerCSRT::create();
-	else {
-		std::cout << "Incorrect tracker name" << std::endl;
-		std::cout << "Available trackers are: " << std::endl;
-		for (std::vector<std::string>::iterator it = trackerTypes.begin() ; it != trackerTypes.end(); ++it)
-			std::cout << " " << *it << std::endl;
-	}
-	return tracker;
-}
-// Fill the vector with random colors
-
-void getRandomColors(std::vector<cv::Scalar>& colors, int numColors)
-{
-	cv::RNG rng(0);
-	for(int i=0; i < numColors; i++)
-	colors.push_back(cv::Scalar(rng.uniform(0,255), rng.uniform(0, 255), rng.uniform(0, 255)));
-}
-
-int isObjectAlreadyTracked(std::vector<cv::Rect2d> tracked_objects, cv::Rect2d detected_object)
-{
-	for(size_t k=0; k<tracked_objects.size();k++) {
-		if( abs(tracked_objects[k].x - detected_object.x) <= 5 &&
-			abs(tracked_objects[k].y - detected_object.y) <= 5 &&
-			abs(tracked_objects[k].height - detected_object.height) <= 5 &&
-			abs(tracked_objects[k].width - detected_object.width) <= 5 ) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void ObjectDetector::object_tracker_update_only(cv::Mat &frame)
-{
-	multiTracker->update(frame);
-
-	std::vector<cv::Rect2d> tracked_objects = multiTracker->getObjects();
-
-	for(unsigned i=0; i<tracked_objects.size(); i++)
-	{
-		cv::rectangle(frame, multiTracker->getObjects()[i], 5, 2, 1);
-	}
-}
-
-void ObjectDetector::object_tracker_with_new_frame(cv::Mat &frame, std::vector<cv::Mat> outs)
-{
-	syslog(LOG_NOTICE, "ObjectDetector::object_tracker Begin");
-
-	std::vector<cv::Rect2d> tracked_objects = multiTracker->getObjects();
-
-	multiTracker->update(frame);
-	for(size_t i=0;i<outs.size();i++) {
-		// Scan through all the bounding boxes output from the network and keep only the
-		// ones with high confidence scores. Assign the box's class label as the class
-		// with the highest score for the box.
-		float* data = (float*)outs[i].data;
-		for (int j = 0; j < outs[i].rows; ++j, data += outs[i].cols)
-		{
-			cv::Mat scores = outs[i].row(j).colRange(5, outs[i].cols);
-			cv::Point classIdPoint;
-			double confidence;
-			// Get the value and location of the maximum score
-			cv::minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
-			if (confidence > confidence_threshold)
-			{
-				int centerX = (int)(data[0] * frame.cols);
-				int centerY = (int)(data[1] * frame.rows);
-				int width = (int)(data[2] * frame.cols);
-				int height = (int)(data[3] * frame.rows);
-				int left = centerX - width / 2;
-				int top = centerY - height / 2;
-
-				if(!isObjectAlreadyTracked(tracked_objects, cv::Rect2d(left, top, width, height)))
-					multiTracker->add(createTrackerByName("CSRT"), frame, cv::Rect2d(left, top, width, height));
-			}
-		}
-	}
-	std::vector<cv::Scalar> colors;
-	getRandomColors(colors, outs.size());
-
-	for(unsigned i=0; i<tracked_objects.size(); i++)
-	{
-		cv::rectangle(frame, tracked_objects[i], colors[i], 2, 1);
-	}
-	syslog(LOG_NOTICE, "ObjectDetector::object_tracker End");
-}
-
-void ObjectDetector::process_frame(cv::Mat &frame, int framecount, std::string hash_video) {
+void ObjectDetector::process_frame(cv::Mat &frame) {
 	std::vector<std::string> outNames(2);
 	std::vector<double> layersTimes;
 	std::string label;
@@ -330,23 +282,30 @@ void ObjectDetector::process_frame(cv::Mat &frame, int framecount, std::string h
 	double freq, t;
 
 	syslog(LOG_NOTICE, "ObjectDetector::process_frame Begin");
-
+#if 0
 	//cv::dnn::blobFromImage(frame, blob);
-	cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(inpWidth, inpHeight), cv::Scalar(), true, false);
+	cv::dnn::blobFromImage(frame, blob, 1.0, cv::Size(inpWidth, inpHeight), cv::Scalar(104.0, 177.0, 123.0), true, false);
+#endif
+	cv::dnn::blobFromImage(frame, blob, 1.0, cv::Size(inpWidth, inpHeight), cv::Scalar(104.0, 177.0, 123.0), false, false);
+	//cv::Mat inputBlob = cv::dnn::blobFromImage(frameOpenCVDNN, inScaleFactor, cv::Size(inWidth, inHeight), meanVal, true, false);
+
 	net.setInput(blob);
+	cv::Mat detection;
+	net.forward(detection);
 
-	std::vector<cv::Mat> outs;
-	net.forward(outs, getOutputsNames());
+#if 0
+	std::vector<cv::Mat> detections;
+	net.forward(detections, getOutputsNames());
+#endif
+	//syslog(LOG_NOTICE, "Number of detections : %d", (int) detections.size());
 
-	syslog(LOG_NOTICE, "Number of outs : %d", (int) outs.size());
+	//object_tracker_with_new_frame(frame, detections);
 
-	object_tracker_with_new_frame(frame, outs);
-
-	post_process(frame, outs, framecount, hash_video);
+	post_process(frame, detection);
 	freq = cv::getTickFrequency() / 1000;
 	t = net.getPerfProfile(layersTimes) / freq;
 	label = cv::format("London South Bank University - Utku Bulkan - Frame processing time: %.2f ms", t);
-	cv::putText(frame, label, cv::Point(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.9, cv::Scalar(0, 0, 0));
+	cv::putText(frame, label, cv::Point(0, 20), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0));
 
 
 	syslog(LOG_NOTICE, "ObjectDetector::process_frame End");
@@ -381,7 +340,6 @@ void ObjectDetector::loop() {
 	cv::resizeWindow("Camera1", 640, 480);
 
 	int framecount = 0;
-	std::string hash_video = md5_hash(filename);
 
 	while(1) {
 		syslog(LOG_NOTICE, "Frame count : %d", framecount);
@@ -394,26 +352,18 @@ void ObjectDetector::loop() {
 		}
 
 		framecount++;
-#ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
 		{
+#ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
 			if (framecount % 24 == 0)
-				process_frame(frame, framecount, hash_video);
 #endif
-			object_tracker_update_only(frame);
+			process_frame(frame);
+			//object_tracker_update_only(frame);
 #ifdef CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 			/* Outputting captured frames to a video file */
 			outputVideo << frame;
 #endif
 			cv::imshow("Camera1", frame);
 
-#ifdef CATDETECTOR_ENABLE_CAPTURED_FRAMES_TO_JSON
-			/* Outputting captured frames to json */
-			std::ofstream myfile;
-			std::string videodata_filename(hash_video + ".json");
-			myfile.open (videodata_filename);
-			myfile << j << std::endl;
-			myfile.close();
-#endif
 			/* Sending the data as a Kafka producer */
 			/* video_analyser_kafka_producer(j.dump().c_str(), "TutorialTopic"); */
 		}
@@ -421,3 +371,4 @@ void ObjectDetector::loop() {
 	}
 	outputVideo.release();
 }
+#endif
