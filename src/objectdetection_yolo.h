@@ -36,11 +36,11 @@
 #define inpHeight 416
 #define inpWidth 416
 
-class ObjectDetector_YoloTiny : public ObjectDetector
+class ObjectDetector_Yolo : public ObjectDetector
 {
 public:
-	ObjectDetector_YoloTiny();
-	~ObjectDetector_YoloTiny();
+	ObjectDetector_Yolo();
+	~ObjectDetector_Yolo();
 private:
 	std::vector<cv::Mat> process_frame(cv::Mat &frame);
 	void post_process(cv::Mat& frame, std::vector<cv::Mat> detection);

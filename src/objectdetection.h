@@ -36,9 +36,12 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
 
+#define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
+//#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
+
 class ObjectDetector {
 public:
-	static ObjectDetector* Generate(std::string objectdetector_type);
+	static ObjectDetector* GenerateDetector(std::string objectdetector_type);
 
 	void setup_model_for_detector(std::string class_definition_file, std::string model_config_file, std::string model_weights_file);
 	void load_model_for_detector();
@@ -48,7 +51,7 @@ public:
 	float get_nms_threshold();
 	cv::dnn::Net get_net();
 
-	virtual void process_frame(cv::Mat &frame) = 0;
+	virtual std::vector<cv::Mat> process_frame(cv::Mat &frame) = 0;
 protected :
 	ObjectDetector();
 	~ObjectDetector();

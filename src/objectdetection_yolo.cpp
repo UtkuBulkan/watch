@@ -35,20 +35,20 @@
 #include <sstream>
 #include <syslog.h>
 
-#include "objectdetection_yolotiny.h"
+#include "objectdetection_yolo.h"
 
-ObjectDetector_YoloTiny::ObjectDetector_YoloTiny()
+ObjectDetector_Yolo::ObjectDetector_Yolo()
 {
-	syslog (LOG_DEBUG, "ObjectDetector_YoloTiny Constructor Begin");
-	setup_model_for_detector("../data/yolo/coco.names", "../data/yolotiny/yolov3-tiny.cfg", "../data/yolotiny/yolov3-tiny.weights");
+	syslog (LOG_NOTICE, "ObjectDetector_Yolo Constructor Begin");
+	setup_model_for_detector("../data/yolo/coco.names", "../data/yolo/yolov3.cfg", "../data/yolo/yolov3.weights");
 	load_model_for_detector();
-	syslog (LOG_DEBUG, "ObjectDetector_YoloTiny Constructor End");
+	syslog (LOG_NOTICE, "ObjectDetector_Yolo Constructor End");
 }
 
-ObjectDetector_YoloTiny::~ObjectDetector_YoloTiny() {
+ObjectDetector_Yolo::~ObjectDetector_Yolo() {
 }
 
-std::vector<std::string> ObjectDetector_YoloTiny::get_output_layer_names()
+std::vector<std::string> ObjectDetector_Yolo::get_output_layer_names()
 {
 	// Get the names of the output layers
 	static std::vector<std::string> names;
@@ -68,9 +68,9 @@ std::vector<std::string> ObjectDetector_YoloTiny::get_output_layer_names()
 	return names;
 }
 
-void ObjectDetector_YoloTiny::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat& frame)
+void ObjectDetector_Yolo::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat& frame)
 {
-	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::draw_box Begin");
+	syslog(LOG_DEBUG, "ObjectDetector_Yolo::draw_box Begin");
 
 	cv::rectangle(frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255));
 	std::string confidence_and_class_information = cv::format("%.2f", confidence);
@@ -86,12 +86,12 @@ void ObjectDetector_YoloTiny::draw_prediction_indicators(int classId, float conf
 	top = std::max(top, labelSize.height);
 	cv::putText(frame, confidence_and_class_information, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255));
 
-	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::draw_box End");
+	syslog(LOG_DEBUG, "ObjectDetector_Yolo::draw_box End");
 }
 
-void ObjectDetector_YoloTiny::post_process(cv::Mat& frame, std::vector<cv::Mat> detection)
+void ObjectDetector_Yolo::post_process(cv::Mat& frame, std::vector<cv::Mat> detection)
 {
-	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::post_process Begin");
+	syslog(LOG_DEBUG, "ObjectDetector_Yolo::post_process Begin");
 
 	std::vector<int> classIds;
 	std::vector<float> confidences;
@@ -135,17 +135,18 @@ void ObjectDetector_YoloTiny::post_process(cv::Mat& frame, std::vector<cv::Mat> 
 		cv::Rect box = boxes[idx];
 		draw_prediction_indicators(classIds[idx], confidences[idx], box.x, box.y, box.x + box.width, box.y + box.height, frame);
 	}
-	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::post_process End");
+	syslog(LOG_DEBUG, "ObjectDetector_Yolo::post_process End");
 }
 
-std::vector<cv::Mat> ObjectDetector_YoloTiny::process_frame(cv::Mat &frame) {
+std::vector<cv::Mat> ObjectDetector_Yolo::process_frame(cv::Mat &frame)
+{
 	std::vector<std::string> outNames(2);
 	std::vector<double> layersTimes;
 	std::string label;
 	cv::Mat blob;
 	double freq, t;
 
-	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::process_frame Begin");
+	syslog(LOG_DEBUG, "ObjectDetector_Yolo::process_frame Begin");
 
 	cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(inpWidth, inpHeight), cv::Scalar(0, 0, 0), true, false);
 	get_net().setInput(blob);
@@ -153,7 +154,6 @@ std::vector<cv::Mat> ObjectDetector_YoloTiny::process_frame(cv::Mat &frame) {
 	get_net().forward(detection, get_output_layer_names());
 	syslog(LOG_NOTICE, "Number of detections : %d", (int) detection.size());
 
-	//object_tracker_with_new_frame(frame, detections);
 	post_process(frame, detection);
 
 	freq = cv::getTickFrequency() / 1000;
@@ -161,6 +161,6 @@ std::vector<cv::Mat> ObjectDetector_YoloTiny::process_frame(cv::Mat &frame) {
 	label = cv::format("London South Bank University - Utku Bulkan - Frame processing time: %.2f ms", t);
 	cv::putText(frame, label, cv::Point(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
 
-	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::process_frame End");
+	syslog(LOG_DEBUG, "ObjectDetector_Yolo::process_frame End");
 	return detection;
 }

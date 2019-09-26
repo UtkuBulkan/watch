@@ -62,7 +62,7 @@ Camera::~Camera()
 	outputVideo.release();
 }
 
-void Camera::loop(ObjectDetector *object_detector)
+void Camera::loop(ObjectDetector *object_detector, ObjectTracker *object_tracker)
 {
 	cv::Mat frame;
 
@@ -80,19 +80,21 @@ void Camera::loop(ObjectDetector *object_detector)
 
 		framecount++;
 		{
+			syslog(LOG_NOTICE, "Frame count : %d", framecount);
 #ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
 			if (framecount % 24 == 0) {
 #endif
-				if(object_detector) {
-					syslog(LOG_NOTICE, "Frame count : %d", framecount);
+				if(object_detector && object_tracker) {
+					object_tracker->object_tracker_with_new_frame(frame, object_detector->process_frame(frame));
+				} else if (object_detector) {
 					object_detector->process_frame(frame);
 				}
-				//if(object_tracker) {
-					//object_tracker_update_only(frame);
-				//}
 #ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
-			}
+			} else
 #endif
+			if(object_tracker) {
+				object_tracker->object_tracker_update_only(frame);
+			}
 #ifdef CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 			/* Outputting captured frames to a video file */
 			outputVideo << frame;

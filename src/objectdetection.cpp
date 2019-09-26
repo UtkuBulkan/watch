@@ -31,17 +31,14 @@
 #include <string>
 #include <syslog.h>
 
-//#include "objectdetection_yolo.h"
+#include "objectdetection_yolo.h"
 #include "objectdetection_yolotiny.h"
 
-#define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
-#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
-
-ObjectDetector* ObjectDetector::Generate(std::string objectdetector_type_string)
+ObjectDetector* ObjectDetector::GenerateDetector(std::string objectdetector_type_string)
 {
-	/*if (objectdetector_type_string == "Yolo")
+	if (objectdetector_type_string == "Yolo")
 		return new ObjectDetector_Yolo;
-	else*/ if (objectdetector_type_string == "Yolotiny")
+	else if (objectdetector_type_string == "Yolotiny")
 		return new ObjectDetector_YoloTiny;
 
 	return NULL;
