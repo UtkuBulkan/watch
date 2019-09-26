@@ -1,0 +1,13 @@
+diff --git a/samples/cpp/CMakeLists.txt b/samples/cpp/CMakeLists.txt
+index 4e009461b..2df2e9b58 100644
+--- a/samples/cpp/CMakeLists.txt
++++ b/samples/cpp/CMakeLists.txt
+@@ -35,7 +35,7 @@ foreach(sample_filename ${cpp_samples})
+     set(package "tutorial")
+   endif()
+   ocv_define_sample(tgt ${sample_filename} ${package})
+-  ocv_target_link_libraries(${tgt} LINK_PRIVATE ${OPENCV_LINKER_LIBS} ${OPENCV_CPP_SAMPLES_REQUIRED_DEPS})
++  ocv_target_link_libraries(${tgt} LINK_PRIVATE ${OPENCV_LINKER_LIBS} ${OPENCV_CPP_SAMPLES_REQUIRED_DEPS} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY})
+   if(sample_filename MATCHES "/gpu/" AND HAVE_opencv_cudaarithm AND HAVE_opencv_cuda_filters)
+     ocv_target_link_libraries(${tgt} LINK_PRIVATE opencv_cudaarithm opencv_cudafilters)
+   endif()
