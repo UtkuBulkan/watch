@@ -7,10 +7,6 @@ sudo apt-get -y purge libreoffice*
 sudo apt-get -y clean
 sudo apt-get -y autoremove
 
-# Create directory for installation
-mkdir installation
-mkdir installation/OpenCV-"$cvVersion"
-
 sudo apt-get -y remove x264 libx264-dev
  
 ## Install dependencies
