@@ -42,7 +42,7 @@ public:
 	ObjectDetector_SsdCaffe();
 	~ObjectDetector_SsdCaffe();
 private:
-	std::vector<cv::Mat> process_frame(cv::Mat &frame);
+	std::string process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections);
 	void post_process(cv::Mat& frame, std::vector<cv::Mat> detection);
 	void draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
 };

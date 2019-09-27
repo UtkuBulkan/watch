@@ -62,7 +62,7 @@ Camera::~Camera()
 	outputVideo.release();
 }
 
-void Camera::loop(ObjectDetector *object_detector, ObjectTracker *object_tracker)
+void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker)
 {
 	cv::Mat frame;
 
@@ -71,7 +71,7 @@ void Camera::loop(ObjectDetector *object_detector, ObjectTracker *object_tracker
 	while(1) {
 		capture >> frame;
 		syslog(LOG_NOTICE, "Frame count : %d", framecount);
-		syslog(LOG_NOTICE, "Frame resolution : %d x %d", frame.rows, frame.cols);
+		syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
 
 		if (frame.empty()) {
 			syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
@@ -80,35 +80,38 @@ void Camera::loop(ObjectDetector *object_detector, ObjectTracker *object_tracker
 
 		framecount++;
 		{
-			syslog(LOG_NOTICE, "Frame count : %d", framecount);
-#ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
-			if (framecount % 24 == 0) {
-#endif
+			/*if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES == 0) {
 				if(object_detector && object_tracker) {
 					object_tracker->object_tracker_with_new_frame(frame, object_detector->process_frame(frame));
 				} else if (object_detector) {
-					syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 					object_detector->process_frame(frame);
-					syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 				}
-#ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
-			} else
-#endif
-			if(object_tracker) {
-				object_tracker->object_tracker_update_only(frame);
+			} else {
+				if(object_tracker) {
+					object_tracker->object_tracker_update_only(frame);
+				}
+			}*/
+			std::vector<std::pair<cv::Mat, cv::Point> > detected_faces;
+			object_detectors[0]->process_frame(frame, detected_faces);
+			for(size_t i = 0; i < detected_faces.size(); i++) {
+				std::vector<std::pair<cv::Mat, cv::Point> > dummy;
+				std::string gender = object_detectors[1]->process_frame(detected_faces[i].first, dummy);
+				std::string age = object_detectors[2]->process_frame(detected_faces[i].first, dummy);
+				cv::Point label_location = detected_faces[i].second;
+				cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+				label_location.y += 25;
+				cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 			}
+
 #ifdef CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 			/* Outputting captured frames to a video file */
 			outputVideo << frame;
 #endif
-			syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 			cv::imshow(m_input_device_name, frame);
-			syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 
 			/* Sending the data as a Kafka producer */
 			/* video_analyser_kafka_producer(j.dump().c_str(), "TutorialTopic"); */
 		}
 		if(cv::waitKey(30) >= 0) break;
-		syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 	}
 }

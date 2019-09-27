@@ -6,7 +6,7 @@ include_directories(include)
 #Can manually add the sources using the set command as follows:
 set(SOURCES src/watch.cpp src/camera_manager.cpp src/objectdetection.cpp 
 			src/objecttracker.cpp src/objectdetection_yolo.cpp src/objectdetection_yolotiny.cpp
-			src/objectdetection_ssdcaffe.cpp src/objectdetection_gender_caffe.cpp)
+			src/objectdetection_ssdcaffe.cpp src/objectdetection_gender_caffe.cpp src/objectdetection_age_caffe.cpp)
 
 find_package(OpenCV REQUIRED)
 

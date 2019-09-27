@@ -34,6 +34,8 @@
 #include "objectdetection_yolo.h"
 #include "objectdetection_yolotiny.h"
 #include "objectdetection_ssdcaffe.h"
+#include "objectdetection_gender_caffe.h"
+#include "objectdetection_age_caffe.h"
 
 ObjectDetector* ObjectDetector::GenerateDetector(std::string objectdetector_type_string)
 {
@@ -43,6 +45,10 @@ ObjectDetector* ObjectDetector::GenerateDetector(std::string objectdetector_type
 		return new ObjectDetector_YoloTiny;
 	else if (objectdetector_type_string == "SsdCaffe")
 		return new ObjectDetector_SsdCaffe;
+	else if (objectdetector_type_string == "GenderCaffe")
+		return new ObjectDetector_GenderCaffe;
+	else if (objectdetector_type_string == "AgeCaffe")
+		return new ObjectDetector_AgeCaffe;
 
 	return NULL;
 }

@@ -29,12 +29,15 @@
 #include "objectdetection.h"
 #include "objecttracker.h"
 
+#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 5
+//#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
+
 class Camera
 {
 public:
 	Camera(std::string input_device_name);
 	~Camera();
-	void loop(ObjectDetector *object_detector, ObjectTracker *object_tracker);
+	void loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker);
 private:
 	std::string m_input_device_name;
 	cv::VideoCapture capture;

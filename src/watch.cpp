@@ -41,11 +41,13 @@ int main()
 	setlogmask (LOG_UPTO (LOG_DEBUG));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
-	ObjectDetector *object_detector = ObjectDetector::GenerateDetector("SsdCaffe");
+	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
+	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
+	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
 	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
-	Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s0");
-	//Camera camera("./demo.mp4");
-	camera.loop(NULL, NULL);
+	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s0");
+	Camera camera("./demo.mp4");
+	camera.loop({object_detector_face, object_detector_gender, object_detector_age}, NULL);
 
 	closelog ();
 }

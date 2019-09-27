@@ -32,12 +32,10 @@
 #include <unistd.h>
 #include <vector>
 #include <string>
+#include <utility>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
-
-//#define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
-//#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 
 class ObjectDetector {
 public:
@@ -51,7 +49,7 @@ public:
 	float get_nms_threshold();
 	cv::dnn::Net get_net();
 
-	virtual std::vector<cv::Mat> process_frame(cv::Mat &frame) = 0;
+	virtual std::string process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) = 0;
 protected :
 	ObjectDetector();
 	~ObjectDetector();

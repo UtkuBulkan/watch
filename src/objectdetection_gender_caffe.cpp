@@ -60,9 +60,8 @@ void ObjectDetector_GenderCaffe::post_process(cv::Mat& frame, std::vector<cv::Ma
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::post_process End");
 }
 
-std::vector<cv::Mat> ObjectDetector_GenderCaffe::process_frame(cv::Mat &frame) {
+std::string ObjectDetector_GenderCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::process_frame Begin");
-
 	std::vector<std::string> genderList = {"Male", "Female"};
 
 	cv::Mat blob;
@@ -75,8 +74,8 @@ std::vector<cv::Mat> ObjectDetector_GenderCaffe::process_frame(cv::Mat &frame) {
 	// distance function does the argmax() work in C++
 	int max_index_gender = std::distance(genderPreds.begin(), max_element(genderPreds.begin(), genderPreds.end()));
 	std::string gender = genderList[max_index_gender];
-
+	syslog(LOG_NOTICE, "%s, max index : %d", gender.c_str(), max_index_gender);
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::process_frame End");
-	std::vector<cv::Mat> dummy;
-	return dummy;
+
+	return gender;
 }

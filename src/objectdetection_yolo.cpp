@@ -139,7 +139,7 @@ void ObjectDetector_Yolo::post_process(cv::Mat& frame, std::vector<cv::Mat> dete
 	syslog(LOG_DEBUG, "ObjectDetector_Yolo::post_process End");
 }
 
-std::vector<cv::Mat> ObjectDetector_Yolo::process_frame(cv::Mat &frame)
+std::string ObjectDetector_Yolo::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections)
 {
 	std::vector<std::string> outNames(2);
 	std::vector<double> layersTimes;
@@ -163,5 +163,5 @@ std::vector<cv::Mat> ObjectDetector_Yolo::process_frame(cv::Mat &frame)
 	cv::putText(frame, label, cv::Point(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
 
 	syslog(LOG_DEBUG, "ObjectDetector_Yolo::process_frame End");
-	return detection;
+	return std::string("");
 }

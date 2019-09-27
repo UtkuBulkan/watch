@@ -35,6 +35,8 @@
 #include <sstream>
 #include <syslog.h>
 
+#include <sys/time.h>
+
 #include "objectdetection_ssdcaffe.h"
 
 ObjectDetector_SsdCaffe::ObjectDetector_SsdCaffe()
@@ -60,8 +62,17 @@ void ObjectDetector_SsdCaffe::post_process(cv::Mat& frame, std::vector<cv::Mat> 
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::post_process End");
 }
 
-std::vector<cv::Mat> ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame) {
+long long current_timestamp() {
+	struct timeval te;
+	gettimeofday(&te, NULL);
+	long long  miliseconds = te.tv_sec*1000LL + te.tv_usec/1000;
+	return miliseconds;
+}
+
+std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::process_frame Begin");
+
+	long long time_start = current_timestamp();
 
 	const cv::Scalar meanVal(104.0, 177.0, 123.0);
 	const double inScaleFactor = 1.0;
@@ -73,8 +84,6 @@ std::vector<cv::Mat> ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame) {
 	cv::Mat detection = get_net().forward("detection_out");
 
 	cv::Mat detectionMat(detection.size[2], detection.size[3], CV_32F, detection.ptr<float>());
-
-	std::vector<cv::Mat> detected_faces;
 
 	for(int i = 0; i < detectionMat.rows; i++)
 	{
@@ -88,20 +97,21 @@ std::vector<cv::Mat> ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame) {
 			int y2 = static_cast<int>(detectionMat.at<float>(i, 6) * frameHeight);
 
 			cv::rectangle(frame, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0),2, 4);
-			//detected_faces.push_back(frame(cv::Rect(x1,y1,x2,y2)));
+
+			syslog(LOG_NOTICE, "%d - %d,%d,%d,%d", i, x1, y1, x2-x1, y2-y1);
+
+			detections.push_back(std::make_pair(frame(cv::Rect(x1,y1,x2-x1,y2-y1)), cv::Point(x2+3,y1+20)));
 		}
 	}
 
-	double t = cv::getTickCount();
-	double tt_opencvDNN = 0;
-	double fpsOpencvDNN = 0;
-	tt_opencvDNN = ((double)cv::getTickCount() - t)/cv::getTickFrequency();
-	fpsOpencvDNN = 1/tt_opencvDNN;
+	long long time_end= current_timestamp();
+
+	double fps = 1.0/(time_end - time_start);
 	cv::putText(frame,
-			cv::format("London South Bank University - Utku Bulkan - Frame processing time: %.2f ms ; FPS = %.2f", t / 1000, fpsOpencvDNN),
+			cv::format("LSBU - Utku Bulkan - FPS = %.2lf", fps),
 			cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.4, cv::Scalar(0, 0, 255), 4);
 
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::process_frame End");
 
-	return detected_faces;
+	return std::string("");
 }

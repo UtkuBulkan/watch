@@ -139,7 +139,8 @@ void ObjectDetector_YoloTiny::post_process(cv::Mat& frame, std::vector<cv::Mat> 
 	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::post_process End");
 }
 
-std::vector<cv::Mat> ObjectDetector_YoloTiny::process_frame(cv::Mat &frame) {
+std::string ObjectDetector_YoloTiny::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections)
+{
 	std::vector<std::string> outNames(2);
 	std::vector<double> layersTimes;
 	std::string label;
@@ -163,5 +164,5 @@ std::vector<cv::Mat> ObjectDetector_YoloTiny::process_frame(cv::Mat &frame) {
 	cv::putText(frame, label, cv::Point(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
 
 	syslog(LOG_DEBUG, "ObjectDetector_YoloTiny::process_frame End");
-	return detection;
+	return std::string("");
 }
