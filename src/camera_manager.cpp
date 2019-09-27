@@ -87,7 +87,9 @@ void Camera::loop(ObjectDetector *object_detector, ObjectTracker *object_tracker
 				if(object_detector && object_tracker) {
 					object_tracker->object_tracker_with_new_frame(frame, object_detector->process_frame(frame));
 				} else if (object_detector) {
+					syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 					object_detector->process_frame(frame);
+					syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 				}
 #ifdef CATDETECTOR_ANALYSE_EVERY_24_FRAMES
 			} else
@@ -99,11 +101,14 @@ void Camera::loop(ObjectDetector *object_detector, ObjectTracker *object_tracker
 			/* Outputting captured frames to a video file */
 			outputVideo << frame;
 #endif
+			syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 			cv::imshow(m_input_device_name, frame);
+			syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 
 			/* Sending the data as a Kafka producer */
 			/* video_analyser_kafka_producer(j.dump().c_str(), "TutorialTopic"); */
 		}
 		if(cv::waitKey(30) >= 0) break;
+		syslog(LOG_NOTICE, "Camera : %d", __LINE__);
 	}
 }

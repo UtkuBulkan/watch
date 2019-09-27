@@ -36,7 +36,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
 
-#define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
+//#define CATDETECTOR_ANALYSE_EVERY_24_FRAMES
 //#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 
 class ObjectDetector {
@@ -44,8 +44,8 @@ public:
 	static ObjectDetector* GenerateDetector(std::string objectdetector_type);
 
 	void setup_model_for_detector(std::string class_definition_file, std::string model_config_file, std::string model_weights_file);
-	void load_model_for_detector();
-
+	void load_model_classes_for_detector();
+	void load_network_model_for_detector(std::string network_type);
 	std::vector < std::string > get_class_labels();
 	float get_confidence_threshold();
 	float get_nms_threshold();

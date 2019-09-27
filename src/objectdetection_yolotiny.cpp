@@ -41,7 +41,8 @@ ObjectDetector_YoloTiny::ObjectDetector_YoloTiny()
 {
 	syslog (LOG_DEBUG, "ObjectDetector_YoloTiny Constructor Begin");
 	setup_model_for_detector("../data/yolo/coco.names", "../data/yolotiny/yolov3-tiny.cfg", "../data/yolotiny/yolov3-tiny.weights");
-	load_model_for_detector();
+	load_model_classes_for_detector();
+	load_network_model_for_detector("Darknet");
 	syslog (LOG_DEBUG, "ObjectDetector_YoloTiny Constructor End");
 }
 

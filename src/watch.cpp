@@ -38,13 +38,14 @@
 
 int main()
 {
-	setlogmask (LOG_UPTO (LOG_NOTICE));
+	setlogmask (LOG_UPTO (LOG_DEBUG));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
-	ObjectDetector *object_detector = ObjectDetector::GenerateDetector("Yolo");
-	ObjectTracker *object_tracker = new ObjectTracker("KCF");
-	Camera camera("./demo.mp4");
-	camera.loop(object_detector, object_tracker);
+	ObjectDetector *object_detector = ObjectDetector::GenerateDetector("SsdCaffe");
+	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
+	Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s0");
+	//Camera camera("./demo.mp4");
+	camera.loop(NULL, NULL);
 
 	closelog ();
 }

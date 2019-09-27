@@ -33,6 +33,7 @@
 
 #include "objectdetection_yolo.h"
 #include "objectdetection_yolotiny.h"
+#include "objectdetection_ssdcaffe.h"
 
 ObjectDetector* ObjectDetector::GenerateDetector(std::string objectdetector_type_string)
 {
@@ -40,6 +41,8 @@ ObjectDetector* ObjectDetector::GenerateDetector(std::string objectdetector_type
 		return new ObjectDetector_Yolo;
 	else if (objectdetector_type_string == "Yolotiny")
 		return new ObjectDetector_YoloTiny;
+	else if (objectdetector_type_string == "SsdCaffe")
+		return new ObjectDetector_SsdCaffe;
 
 	return NULL;
 }
@@ -55,7 +58,7 @@ void ObjectDetector::setup_model_for_detector(std::string class_definition_file,
 	m_class_definition_file = class_definition_file;
 }
 
-void ObjectDetector::load_model_for_detector()
+void ObjectDetector::load_model_classes_for_detector()
 {
 	std::ifstream classes_file_stream(m_class_definition_file.c_str());
 	std::string class_file_line;
@@ -75,10 +78,17 @@ void ObjectDetector::load_model_for_detector()
 		colors.push_back(cv::Scalar(red, green, blue, 255.0));
 		syslog (LOG_NOTICE, "Colors.txt Colors : %f, %f, %f", red, green, blue);
 	}
+}
 
+void ObjectDetector::load_network_model_for_detector(std::string network_type)
+{
 	// Load the network for the model
 	syslog (LOG_NOTICE, "ObjectDetector Loading Network");
-	net = cv::dnn::readNetFromDarknet(m_model_config_file, m_model_weights_file);
+	if (network_type == "Darknet") {
+		net = cv::dnn::readNetFromDarknet(m_model_config_file, m_model_weights_file);
+	} else if(network_type == "Caffe") {
+		net = cv::dnn::readNetFromCaffe(m_model_config_file, m_model_weights_file);
+	}
 	net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
 	net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 	syslog (LOG_NOTICE, "ObjectDetector Network Loaded");

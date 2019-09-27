@@ -41,7 +41,8 @@ ObjectDetector_Yolo::ObjectDetector_Yolo()
 {
 	syslog (LOG_NOTICE, "ObjectDetector_Yolo Constructor Begin");
 	setup_model_for_detector("../data/yolo/coco.names", "../data/yolo/yolov3.cfg", "../data/yolo/yolov3.weights");
-	load_model_for_detector();
+	load_model_classes_for_detector();
+	load_network_model_for_detector("Darknet");
 	syslog (LOG_NOTICE, "ObjectDetector_Yolo Constructor End");
 }
 
