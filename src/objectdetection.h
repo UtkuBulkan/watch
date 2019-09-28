@@ -37,6 +37,9 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
 
+#define inWidth 300
+#define inHeight 300
+
 class ObjectDetector {
 public:
 	static ObjectDetector* GenerateDetector(std::string objectdetector_type);

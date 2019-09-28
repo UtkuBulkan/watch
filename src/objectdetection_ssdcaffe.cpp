@@ -100,7 +100,7 @@ std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, std::vector<s
 
 			syslog(LOG_NOTICE, "%d - %d,%d,%d,%d", i, x1, y1, x2-x1, y2-y1);
 
-			detections.push_back(std::make_pair(frame(cv::Rect(x1,y1,x2-x1,y2-y1)), cv::Point(x2+3,y1+20)));
+			detections.push_back(std::make_pair(frame(cv::Rect(x1,y1,x2-x1,y2-y1)), cv::Point(x2+3,y1+22)));
 		}
 	}
 

@@ -97,10 +97,12 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 				std::vector<std::pair<cv::Mat, cv::Point> > dummy;
 				std::string gender = object_detectors[1]->process_frame(detected_faces[i].first, dummy);
 				std::string age = object_detectors[2]->process_frame(detected_faces[i].first, dummy);
+				cv::Point detection_label_location = detected_faces[i].second;
 				cv::Point label_location = detected_faces[i].second;
 				cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 				label_location.y += 25;
 				cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+
 			}
 
 #ifdef CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE

@@ -33,9 +33,6 @@
 #include <vector>
 #include "objectdetection.h"
 
-#define inWidth 960
-#define inHeight 720
-
 class ObjectDetector_GenderCaffe : public ObjectDetector
 {
 public:
