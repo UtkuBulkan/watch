@@ -35,4 +35,4 @@ file(GLOB ${SOURCES} ${SOURCES})
 add_executable(watch ${SOURCES})
 
 # Link your application with OpenCV libraries
-target_link_libraries(watch ${OpenCV_LIBS} ssl crypto)
+target_link_libraries(watch ${OpenCV_LIBS})
