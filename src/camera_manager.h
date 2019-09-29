@@ -38,6 +38,7 @@ public:
 	Camera(std::string input_device_name);
 	~Camera();
 	void loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker);
+	void display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location);
 private:
 	std::string m_input_device_name;
 	cv::VideoCapture capture;

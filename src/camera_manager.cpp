@@ -65,6 +65,15 @@ Camera::~Camera()
 	outputVideo.release();
 }
 
+void Camera::display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location)
+{
+	cv::putText(frame, cv::format("ID #%s", id), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+	label_location.y += 25;
+	cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+	label_location.y += 25;
+	cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+}
+
 void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker)
 {
 	cv::Mat frame;
@@ -100,15 +109,13 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 			object_detectors[0]->process_frame(frame, detected_faces);
 			for(size_t i = 0; i < detected_faces.size(); i++) {
 				std::vector<std::pair<cv::Mat, cv::Point> > dummy;
+
 				std::string gender = object_detectors[1]->process_frame(detected_faces[i].first, dummy);
 				std::string age = object_detectors[2]->process_frame(detected_faces[i].first, dummy);
 				cv::Point detection_label_location = detected_faces[i].second;
 				cv::Point label_location = detected_faces[i].second;
-				cv::putText(frame, cv::format("ID #%d", (int)i), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
-				label_location.y += 25;
-				cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
-				label_location.y += 25;
-				cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+
+				display_statistics(frame, std::to_string(i), gender, age, label_location);
 				cv::imshow("Detected", detected_faces[i].first);
 			}
 			cv::putText(frame,
