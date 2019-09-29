@@ -34,10 +34,12 @@
 #include <vector>
 #include <sstream>
 #include <syslog.h>
-
 #include <sys/time.h>
 
 #include "objectdetection_ssdcaffe.h"
+
+#define inHeight 300
+#define inWidth 300
 
 ObjectDetector_SsdCaffe::ObjectDetector_SsdCaffe()
 {
