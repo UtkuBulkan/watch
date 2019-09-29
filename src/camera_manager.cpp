@@ -50,6 +50,9 @@ Camera::Camera(std::string input_device_name)
 	cv::namedWindow(m_input_device_name, cv::WINDOW_NORMAL);
 	cv::resizeWindow(m_input_device_name, 640, 480);
 
+	cv::namedWindow("Detected", cv::WINDOW_NORMAL);
+	cv::resizeWindow("Detected", 640, 480);
+
 	syslog(LOG_NOTICE, "Input file fourcc: %d, %d", codec, ex);
 	syslog(LOG_NOTICE, "Input file width: %d", S.width);
 	syslog(LOG_NOTICE, "Input file height: %d", S.height);
@@ -80,6 +83,8 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 
 		framecount++;
 		{
+			if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES != 0)
+				continue;
 			/*if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES == 0) {
 				if(object_detector && object_tracker) {
 					object_tracker->object_tracker_with_new_frame(frame, object_detector->process_frame(frame));
@@ -99,11 +104,16 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 				std::string age = object_detectors[2]->process_frame(detected_faces[i].first, dummy);
 				cv::Point detection_label_location = detected_faces[i].second;
 				cv::Point label_location = detected_faces[i].second;
+				cv::putText(frame, cv::format("ID #%d", (int)i), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+				label_location.y += 25;
 				cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 				label_location.y += 25;
 				cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
-
+				cv::imshow("Detected", detected_faces[i].first);
 			}
+			cv::putText(frame,
+						cv::format("LSBU - frame # = %d", framecount),
+						cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 255), 1);
 
 #ifdef CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 			/* Outputting captured frames to a video file */

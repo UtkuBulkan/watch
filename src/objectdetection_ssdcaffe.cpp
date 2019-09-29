@@ -74,7 +74,7 @@ long long current_timestamp() {
 std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::process_frame Begin");
 
-	long long time_start = current_timestamp();
+	//long long time_start = current_timestamp();
 
 	const cv::Scalar meanVal(104.0, 177.0, 123.0);
 	const double inScaleFactor = 1.0;
@@ -93,25 +93,27 @@ std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, std::vector<s
 
 		if(confidence > get_confidence_threshold())
 		{
-			int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * frameWidth);
-			int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * frameHeight);
-			int x2 = static_cast<int>(detectionMat.at<float>(i, 5) * frameWidth);
-			int y2 = static_cast<int>(detectionMat.at<float>(i, 6) * frameHeight);
+			unsigned int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * frameWidth); x1>0 ? x1 : 0;
+			unsigned int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * frameHeight); y1>0 ? y1 : 0;
+			unsigned int x2 = std::min(static_cast<int>(detectionMat.at<float>(i, 5) * frameWidth), frameWidth-1);
+			unsigned int y2 = std::min(static_cast<int>(detectionMat.at<float>(i, 6) * frameHeight), frameWidth-1);
 
 			cv::rectangle(frame, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0),2, 4);
 
-			syslog(LOG_NOTICE, "%d - %d,%d,%d,%d", i, x1, y1, x2-x1, y2-y1);
+			syslog(LOG_NOTICE, "%d - %d,%d,%d,%d, framewidth : %d, frameheight : %d", i, x1, y1, x2-x1, y2-y1, frameWidth, frameHeight);
 
-			detections.push_back(std::make_pair(frame(cv::Rect(x1,y1,x2-x1,y2-y1)), cv::Point(x2+3,y1+22)));
+			cv::Mat face_detected;
+			frame(cv::Rect(x1,y1,x2-x1,y2-y1)).copyTo(face_detected);
+			detections.push_back(std::make_pair(face_detected, cv::Point(x2+3,y1+22)));
 		}
 	}
 
-	long long time_end= current_timestamp();
+	//long long time_end= current_timestamp();
 
-	double fps = 1.0/(time_end - time_start);
-	cv::putText(frame,
-			cv::format("LSBU - Utku Bulkan - FPS = %.2lf", fps),
-			cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.4, cv::Scalar(0, 0, 255), 4);
+	//double fps = 1.0/(time_end - time_start);
+	//cv::putText(frame,
+	//		cv::format("LSBU - Utku Bulkan - freame = %.2lf", fps),
+	//		cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.4, cv::Scalar(0, 0, 255), 4);
 
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::process_frame End");
 

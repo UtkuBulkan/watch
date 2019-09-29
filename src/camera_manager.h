@@ -29,7 +29,7 @@
 #include "objectdetection.h"
 #include "objecttracker.h"
 
-#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 5
+#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 24
 //#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 
 class Camera
