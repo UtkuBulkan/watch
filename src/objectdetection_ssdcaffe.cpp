@@ -93,12 +93,12 @@ std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, std::vector<s
 
 		if(confidence > get_confidence_threshold())
 		{
-			unsigned int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * frameWidth); x1>0 ? x1 : 0;
-			unsigned int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * frameHeight); y1>0 ? y1 : 0;
-			unsigned int x2 = std::min(static_cast<int>(detectionMat.at<float>(i, 5) * frameWidth), frameWidth-1);
-			unsigned int y2 = std::min(static_cast<int>(detectionMat.at<float>(i, 6) * frameHeight), frameWidth-1);
+			int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * frameWidth); x1 = std::max(x1, 0);
+			int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * frameHeight); y1 = std::max(y1, 0);
+			int x2 = static_cast<int>(detectionMat.at<float>(i, 5) * frameWidth); x2 = std::min(x2, frameWidth-1);
+			int y2 = static_cast<int>(detectionMat.at<float>(i, 6) * frameHeight); y2 = std::min(y2, frameHeight-1);
 
-			cv::rectangle(frame, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0),2, 4);
+			cv::rectangle(frame, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0),2, 1);
 
 			syslog(LOG_NOTICE, "%d - %d,%d,%d,%d, framewidth : %d, frameheight : %d", i, x1, y1, x2-x1, y2-y1, frameWidth, frameHeight);
 

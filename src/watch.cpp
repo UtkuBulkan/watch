@@ -44,10 +44,11 @@ int main()
 	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
 	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
 	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
+	FaceRecognition *face_recognitor = new FaceRecognition();
 	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
 	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
 	Camera camera("./demo.mp4");
-	camera.loop({object_detector_face, object_detector_gender, object_detector_age}, NULL);
+	camera.loop({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
 
 	closelog ();
 }

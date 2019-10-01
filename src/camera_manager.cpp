@@ -29,6 +29,7 @@
 
 Camera::Camera(std::string input_device_name)
 {
+	syslog(LOG_NOTICE, "Camera::Camera Begin");
 	m_input_device_name = input_device_name;
 
 	capture.open(m_input_device_name);
@@ -37,7 +38,6 @@ Camera::Camera(std::string input_device_name)
 	}
 	cv::Mat frame;
 	capture >> frame;
-
 	int ex = static_cast<int>(capture.get(cv::CAP_PROP_FOURCC));	// Get Codec Type- Int form
 	int codec = cv::VideoWriter::fourcc('M', 'P', 'G', '2');
 	cv::Size S = cv::Size((int) capture.get(cv::CAP_PROP_FRAME_WIDTH), (int) capture.get(cv::CAP_PROP_FRAME_HEIGHT));
@@ -58,26 +58,31 @@ Camera::Camera(std::string input_device_name)
 	syslog(LOG_NOTICE, "Input file height: %d", S.height);
 
 	syslog(LOG_NOTICE, "Device name : %s", m_input_device_name.c_str());
+	syslog(LOG_NOTICE, "Camera::Camera End");
 }
 
 Camera::~Camera()
 {
+	syslog(LOG_NOTICE, "Camera::~Camera Begin");
 	outputVideo.release();
+	syslog(LOG_NOTICE, "Camera::~Camera End");
 }
 
 void Camera::display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location)
 {
-	cv::putText(frame, cv::format("ID #%s", id), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+	syslog(LOG_NOTICE, "Camera::display_statistics Begin");
+	cv::putText(frame, cv::format("ID #%s", id.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 	label_location.y += 25;
 	cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 	label_location.y += 25;
 	cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+	syslog(LOG_NOTICE, "Camera::display_statistics End");
 }
 
-void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker)
+void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor)
 {
+	syslog(LOG_NOTICE, "Camera::loop Begin");
 	cv::Mat frame;
-
 	int framecount = 0;
 
 	while(1) {
@@ -112,15 +117,18 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 
 				std::string gender = object_detectors[1]->process_frame(detected_faces[i].first, dummy);
 				std::string age = object_detectors[2]->process_frame(detected_faces[i].first, dummy);
-				cv::Point detection_label_location = detected_faces[i].second;
 				cv::Point label_location = detected_faces[i].second;
 
-				display_statistics(frame, std::to_string(i), gender, age, label_location);
+				cv::Mat grayscale;
+				cv::cvtColor(detected_faces[i].first, grayscale, CV_RGB2GRAY);
+				cv::resize(grayscale,grayscale,cv::Size(128,128));
+				std::string predicted_string = face_recognitor->predict_new_sample(grayscale);
+				face_recognitor->display_statistics(detected_faces[i].first, predicted_string);
 				cv::imshow("Detected", detected_faces[i].first);
+
+				display_statistics(frame, predicted_string, gender, age, label_location);
 			}
-			cv::putText(frame,
-						cv::format("LSBU - frame # = %d", framecount),
-						cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 255), 1);
+			cv::putText(frame, cv::format("LSBU - frame # %d", framecount), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 255), 2);
 
 #ifdef CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 			/* Outputting captured frames to a video file */
@@ -133,4 +141,5 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 		}
 		if(cv::waitKey(30) >= 0) break;
 	}
+	syslog(LOG_NOTICE, "Camera::loop End");
 }

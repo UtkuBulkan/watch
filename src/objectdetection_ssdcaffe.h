@@ -31,6 +31,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "objectdetection.h"
 
 class ObjectDetector_SsdCaffe : public ObjectDetector

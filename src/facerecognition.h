@@ -26,28 +26,27 @@
  */
 #include <string>
 #include <opencv2/opencv.hpp>
-
 #include "opencv2/core.hpp"
 #include "opencv2/face.hpp"
 #include "opencv2/highgui.hpp"
 #include <fstream>
 
-#include "objectdetection.h"
-#include "objecttracker.h"
-#include "facerecognition.h"
-
-#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 1
-//#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
-
-class Camera
+class FaceRecognition
 {
 public:
-	Camera(std::string input_device_name);
-	~Camera();
-	void loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor);
-	void display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location);
+	FaceRecognition();
+	~FaceRecognition();
+	void load_face_recognition_model();
+	std::string getLabelInfo(int &predicted_id);
+	std::string predict_new_sample(cv::Mat &detected_face);
+	int train_new_sample(cv::Mat &detected_face);
+	void display_statistics(cv::Mat &frame, std::string predicted_string);
 private:
-	std::string m_input_device_name;
-	cv::VideoCapture capture;
-	cv::VideoWriter outputVideo;
+	std::string face_recognition_model_database;
+	std::string face_image_list_csv;
+
+	cv::Ptr<cv::face::FaceRecognizer> model;
+	void read_csv(const std::string& filename, std::vector<cv::Mat>& images, std::vector<int>& labels, char separator);
+
+	int last_detected_id;
 };
