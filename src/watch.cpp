@@ -35,7 +35,7 @@
 #include "objectdetection.h"
 #include "objecttracker.h"
 #include "camera_manager.h"
-
+#if 0
 int main()
 {
 	setlogmask (LOG_UPTO (LOG_DEBUG));
@@ -52,3 +52,4 @@ int main()
 
 	closelog ();
 }
+#endif

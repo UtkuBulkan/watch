@@ -53,7 +53,7 @@ std::string FaceRecognition::getLabelInfo(int &predicted_id)
 void FaceRecognition::display_statistics(cv::Mat &frame, std::string id)
 {
 	syslog(LOG_NOTICE, "FaceRecognition::display_statistics Begin");
-	cv::putText(frame, cv::format("ID #%s", id.c_str()), cv::Size(1,20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
+	cv::putText(frame, cv::format("ID #%s", id.c_str()), cv::Size(1,20), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
 	//cv::putText(frame, cv::format("C : %0.0lf", confidence), cv::Size(1,40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
 	syslog(LOG_NOTICE, "FaceRecognition::display_statistics Begin");
 }
@@ -109,9 +109,9 @@ void FaceRecognition::load_face_recognition_model()
 		model->train(images, labels);
 		model->setLabelInfo(0, "utku");
 		model->setLabelInfo(1, "arnold");
-		/*model->setLabelInfo(2, "ayleen");
+		model->setLabelInfo(2, "ayleen");
 		model->setLabelInfo(3, "maya");
-		model->setLabelInfo(4, "eda");*/
+		model->setLabelInfo(4, "eda");
 		//model->write(face_recognition_model_database);
 	}
 	//model->setThreshold(0.0);
