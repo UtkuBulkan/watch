@@ -2,6 +2,9 @@
 #include "ui_mainwindow.h"
 #include <QCoreApplication>
 
+#include <syslog.h>
+#include "camera_manager.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
@@ -52,24 +55,33 @@ void MainWindow::on_startBtn_pressed()
 
 	ui->startBtn->setText("Stop");
 
-	Mat frame;
-	while(video.isOpened())
-	{
-		video >> frame;
-		if(!frame.empty())
-		{
-			QImage qimg(frame.data,
-					frame.cols,
-					frame.rows,
-					frame.step,
-					QImage::Format_RGB888);
-			pixmap.setPixmap( QPixmap::fromImage(qimg.rgbSwapped()) );
-			ui->graphicsView->fitInView(&pixmap, Qt::KeepAspectRatio);
-		}
-		qApp->processEvents();
-	}
+	camera_pipeline_process();
 
 	ui->startBtn->setText("Start");
+}
+
+void MainWindow::camera_pipeline_process()
+{
+	setlogmask (LOG_UPTO (LOG_DEBUG));
+	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+
+	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
+	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
+	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
+	FaceRecognition *face_recognitor = new FaceRecognition();
+	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
+	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
+	Camera camera(ui->videoEdit->text().trimmed().toStdString());
+	camera.loop({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor, this);
+
+	closelog ();
+}
+
+void MainWindow::setPixmap(QImage &qimg)
+{
+	pixmap.setPixmap( QPixmap::fromImage(qimg.rgbSwapped()) );
+	ui->graphicsView->fitInView(&pixmap, Qt::KeepAspectRatio);
+	qApp->processEvents();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

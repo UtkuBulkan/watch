@@ -35,6 +35,7 @@
 #include "objectdetection.h"
 #include "objecttracker.h"
 #include "facerecognition.h"
+#include "qt/watch_qt.h"
 
 #define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 1
 //#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
@@ -44,7 +45,7 @@ class Camera
 public:
 	Camera(std::string input_device_name);
 	~Camera();
-	void loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor);
+	void loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor, MainWindow *main_window);
 	void display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location);
 private:
 	std::string m_input_device_name;

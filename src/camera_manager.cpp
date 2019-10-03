@@ -47,12 +47,6 @@ Camera::Camera(std::string input_device_name)
 	outputVideo << frame;
 #endif
 
-	cv::namedWindow(m_input_device_name, cv::WINDOW_NORMAL);
-	cv::resizeWindow(m_input_device_name, 640, 480);
-
-	cv::namedWindow("Detected", cv::WINDOW_NORMAL);
-	cv::resizeWindow("Detected", 640, 480);
-
 	syslog(LOG_NOTICE, "Input file fourcc: %d, %d", codec, ex);
 	syslog(LOG_NOTICE, "Input file width: %d", S.width);
 	syslog(LOG_NOTICE, "Input file height: %d", S.height);
@@ -79,7 +73,7 @@ void Camera::display_statistics(cv::Mat &frame, std::string id, std::string gend
 	syslog(LOG_NOTICE, "Camera::display_statistics End");
 }
 
-void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor)
+void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor, MainWindow *main_window)
 {
 	syslog(LOG_NOTICE, "Camera::loop Begin");
 	cv::Mat frame;
@@ -124,7 +118,7 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 				cv::resize(grayscale,grayscale,cv::Size(128,128));
 				std::string predicted_string = face_recognitor->predict_new_sample(grayscale);
 				face_recognitor->display_statistics(detected_faces[i].first, predicted_string);
-				cv::imshow("Detected", detected_faces[i].first);
+				//cv::imshow("Detected", detected_faces[i].first);
 
 				display_statistics(frame, predicted_string, gender, age, label_location);
 			}
@@ -134,7 +128,10 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 			/* Outputting captured frames to a video file */
 			outputVideo << frame;
 #endif
-			cv::imshow(m_input_device_name, frame);
+			//cv::imshow(m_input_device_name, frame);
+
+			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+			main_window->setPixmap(qimg);
 
 			/* Sending the data as a Kafka producer */
 			/* video_analyser_kafka_producer(j.dump().c_str(), "TutorialTopic"); */
