@@ -123,7 +123,7 @@ void FaceRecognition::load_face_recognition_model()
 	syslog(LOG_NOTICE, "FaceRecognition::load_face_recognition_model End");
 }
 
-std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face)
+std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &previously_detected)
 {
 	syslog(LOG_NOTICE, "FaceRecognition::predict_new_sample End");
 	int predicted_label_id;
@@ -134,6 +134,9 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face)
 
 	if(confidence > 100.0) {
 		predicted_string = cv::format("%d", train_new_sample(detected_face));
+		previously_detected = false;
+	} else {
+		previously_detected = true;
 	}
 
 	/*std::string model_info = cv::format("\tLBPH(radius=%i, neighbors=%i, grid_x=%i, grid_y=%i, threshold=%.2f)",

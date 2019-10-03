@@ -116,9 +116,16 @@ void Camera::loop(std::vector<ObjectDetector*> object_detectors, ObjectTracker *
 				cv::Mat grayscale;
 				cv::cvtColor(detected_faces[i].first, grayscale, CV_RGB2GRAY);
 				cv::resize(grayscale,grayscale,cv::Size(128,128));
-				std::string predicted_string = face_recognitor->predict_new_sample(grayscale);
+
+				bool previously_detected;
+				std::string predicted_string = face_recognitor->predict_new_sample(grayscale, previously_detected);
 				face_recognitor->display_statistics(detected_faces[i].first, predicted_string);
 				//cv::imshow("Detected", detected_faces[i].first);
+				if(!previously_detected) {
+					QImage qimage_detected_face(detected_faces[i].first.data, detected_faces[i].first.cols, detected_faces[i].first.rows,
+							detected_faces[i].first.step, QImage::Format_RGB888);
+					main_window->add_detected_face(qimage_detected_face);
+				}
 
 				display_statistics(frame, predicted_string, gender, age, label_location);
 			}

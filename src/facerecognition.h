@@ -38,7 +38,7 @@ public:
 	~FaceRecognition();
 	void load_face_recognition_model();
 	std::string getLabelInfo(int &predicted_id);
-	std::string predict_new_sample(cv::Mat &detected_face);
+	std::string predict_new_sample(cv::Mat &detected_face, bool &previously_detected);
 	int train_new_sample(cv::Mat &detected_face);
 	void display_statistics(cv::Mat &frame, std::string predicted_string);
 private:

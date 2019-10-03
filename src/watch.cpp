@@ -34,7 +34,7 @@
 
 #include "objectdetection.h"
 #include "objecttracker.h"
-#include "camera_manager.h"
+//#include "camera_manager.h"
 #if 0
 int main()
 {

@@ -11,6 +11,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 	ui->graphicsView->setScene(new QGraphicsScene(this));
 	ui->graphicsView->scene()->addItem(&pixmap);
+
+	widget = new QWidget();
+	ui->scrollArea->setWidget( widget );
+
+	layout = new QVBoxLayout();
+	widget->setLayout( layout );
+
+	ui->scrollArea->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	ui->scrollArea->setWidgetResizable( true );
+	ui->scrollArea->setAlignment(Qt::AlignTop);
 }
 
 MainWindow::~MainWindow()
@@ -82,6 +92,16 @@ void MainWindow::setPixmap(QImage &qimg)
 	pixmap.setPixmap( QPixmap::fromImage(qimg.rgbSwapped()) );
 	ui->graphicsView->fitInView(&pixmap, Qt::KeepAspectRatio);
 	qApp->processEvents();
+}
+
+void MainWindow::add_detected_face(QImage &detected_face)
+{
+	QPixmap px(QPixmap::fromImage(detected_face.rgbSwapped()));
+	QLabel *label = new QLabel;
+	label->setPixmap(px);
+	layout->addWidget( label );
+	ui->scrollArea->setBackgroundRole(QPalette::Dark);
+	//ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() + 1000);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

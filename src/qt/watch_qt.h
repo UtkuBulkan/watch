@@ -10,6 +10,8 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QApplication>
+#include <QCoreApplication>
+#include <QLayout>
 
 #include "opencv2/opencv.hpp"
 
@@ -24,6 +26,7 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
 	void setPixmap(QImage &qimg);
+	void add_detected_face(QImage &detected_face);
 
 protected:
 	void closeEvent(QCloseEvent *event);
@@ -36,5 +39,8 @@ private:
 	cv::VideoCapture video;
 
 	void camera_pipeline_process();
+
+	QWidget *widget;
+	QVBoxLayout *layout;
 };
 #endif // MAINWINDOW_H
