@@ -12,15 +12,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	ui->graphicsView->setScene(new QGraphicsScene(this));
 	ui->graphicsView->scene()->addItem(&pixmap);
 
-	widget = new QWidget();
-	ui->scrollArea->setWidget( widget );
+	list_widget = new QListWidget();
+	list_widget->setIconSize(QSize(list_widget->width(), list_widget->height()));
+	ui->scrollArea->setWidget( list_widget );
 
-	layout = new QVBoxLayout();
-	widget->setLayout( layout );
-
-	ui->scrollArea->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	ui->scrollArea->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	ui->scrollArea->setWidgetResizable( true );
-	ui->scrollArea->setAlignment(Qt::AlignTop);
 }
 
 MainWindow::~MainWindow()
@@ -96,12 +93,14 @@ void MainWindow::setPixmap(QImage &qimg)
 
 void MainWindow::add_detected_face(QImage &detected_face)
 {
-	QPixmap px(QPixmap::fromImage(detected_face.rgbSwapped()));
-	QLabel *label = new QLabel;
-	label->setPixmap(px);
-	layout->addWidget( label );
-	ui->scrollArea->setBackgroundRole(QPalette::Dark);
-	//ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() + 1000);
+	int is_scroll_to_bottom = false;
+	QScrollBar *vertical_scroll_bar = list_widget->verticalScrollBar();
+	if(vertical_scroll_bar->value() == vertical_scroll_bar->maximum())
+		is_scroll_to_bottom = true;
+	QListWidgetItem *item = new QListWidgetItem;
+	item->setIcon(QPixmap::fromImage(detected_face.rgbSwapped()).scaledToWidth(list_widget->width()));
+	list_widget->insertItem(list_widget->count(),item);
+	if(is_scroll_to_bottom) list_widget->scrollToBottom();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

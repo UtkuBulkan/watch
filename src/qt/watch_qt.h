@@ -12,6 +12,8 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QLayout>
+#include <QListWidget>
+#include <QScrollBar>
 
 #include "opencv2/opencv.hpp"
 
@@ -40,7 +42,6 @@ private:
 
 	void camera_pipeline_process();
 
-	QWidget *widget;
-	QVBoxLayout *layout;
+	QListWidget *list_widget;
 };
 #endif // MAINWINDOW_H
