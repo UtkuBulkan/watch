@@ -93,7 +93,7 @@ void MainWindow::add_detected_face(QImage &detected_face)
 	if(vertical_scroll_bar->value() == vertical_scroll_bar->maximum()) is_scroll_to_bottom = true;
 
 	QListWidgetItem *item = new QListWidgetItem;
-	item->setIcon(QPixmap::fromImage(detected_face.rgbSwapped()).scaled(90,90, Qt::KeepAspectRatio));
+	item->setIcon(QPixmap::fromImage(detected_face.rgbSwapped()).scaled(80,80, Qt::KeepAspectRatio));
 	ui->listWidget->insertItem(ui->listWidget->count(),item);
 	if(is_scroll_to_bottom) ui->listWidget->scrollToBottom();
 }
