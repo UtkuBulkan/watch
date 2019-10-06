@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	ui->graphicsView->scene()->addItem(&pixmap);
 
 	ui->listWidget->setIconSize(QSize(100, 100));
+
+	dbconnection = new DBConnection("localhost", "utku", "utku");
 }
 
 MainWindow::~MainWindow()
@@ -20,9 +22,49 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+void MainWindow::add_camera_list_item(QString id, QString address, QString output_recording)
+{
+
+	QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
+
+	treeItem->setText(0, id);
+	treeItem->setText(1, address);
+	treeItem->setText(2, output_recording);
+}
+
+bool MainWindow::check_camera_list_item_exists(std::string address)
+{
+	for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++) {
+		QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i);
+		QString current_address = item->text(1);
+		if (current_address == QString::fromStdString(address)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void MainWindow::generate_camera_table()
+{
+	std::vector<camera_list_item_t> camera_list;
+	dbconnection->get_camera_list(camera_list);
+
+	ui->treeWidget->setColumnCount(3);
+	ui->treeWidget->setHeaderLabels(QStringList() << "Id" << "Address" << "Record_output");
+	for(int i = 0; i < (int) camera_list.size(); i++) {
+		if(check_camera_list_item_exists(camera_list[i].address) == false)
+		add_camera_list_item(QString::fromStdString(std::to_string(camera_list[i].id)),
+				QString::fromStdString(camera_list[i].address),
+				QString::fromStdString(std::to_string(camera_list[i].is_record_as_output)));
+	}
+}
+
 void MainWindow::on_startBtn_pressed()
 {
 	using namespace cv;
+
+	dbconnection->add_camera(ui->videoEdit->text().trimmed().toStdString());
+	generate_camera_table();
 
 	if(video.isOpened())
 	{

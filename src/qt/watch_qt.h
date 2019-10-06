@@ -14,6 +14,10 @@
 #include <QLayout>
 #include <QListWidget>
 #include <QScrollBar>
+#include <QString>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include "database/watch_mysql.h"
 
 #include "opencv2/opencv.hpp"
 
@@ -29,6 +33,7 @@ public:
 	~MainWindow();
 	void setPixmap(QImage &qimg);
 	void add_detected_face(QImage &detected_face);
+	void generate_camera_table();
 
 protected:
 	void closeEvent(QCloseEvent *event);
@@ -40,8 +45,12 @@ private:
 	QGraphicsPixmapItem pixmap;
 	cv::VideoCapture video;
 
+	void add_camera_list_item(QString id, QString address, QString output_recording);
+	bool check_camera_list_item_exists(std::string address);
 	void camera_pipeline_process();
 
 	QListWidget *list_widget;
+
+	DBConnection *dbconnection;
 };
 #endif // MAINWINDOW_H

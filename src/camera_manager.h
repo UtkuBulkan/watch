@@ -37,7 +37,7 @@
 #include "facerecognition.h"
 #include "qt/watch_qt.h"
 
-#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 1
+#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 24
 //#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 
 class Camera

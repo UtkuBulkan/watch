@@ -16,7 +16,8 @@ include_directories(include)
 set(SOURCES src/watch.cpp src/camera_manager.cpp src/objectdetection.cpp 
 			src/objecttracker.cpp src/objectdetection_yolo.cpp src/objectdetection_yolotiny.cpp
 			src/objectdetection_ssdcaffe.cpp src/objectdetection_gender_caffe.cpp src/objectdetection_age_caffe.cpp
-			src/facerecognition.cpp src/qt/watch_qt_main.cpp src/qt/watch_qt.cpp)
+			src/facerecognition.cpp src/qt/watch_qt_main.cpp src/qt/watch_qt.cpp
+			src/database/watch_mysql.cpp)
 
 find_package(OpenCV)
 find_package(Qt5Core)
@@ -48,4 +49,4 @@ file(GLOB ${SOURCES} ${SOURCES})
 add_executable(watch ${SOURCES})
 
 # Link your application with OpenCV libraries
-target_link_libraries(watch ${OpenCV_LIBS} Qt5::Core Qt5::Gui Qt5::Widgets)
+target_link_libraries(watch ${OpenCV_LIBS} Qt5::Core Qt5::Gui Qt5::Widgets mysqlcppconn)
