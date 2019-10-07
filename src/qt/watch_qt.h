@@ -47,7 +47,10 @@ private:
 
 	void add_camera_list_item(QString id, QString address, QString output_recording);
 	bool check_camera_list_item_exists(std::string address);
-	void camera_pipeline_process();
+	void camera_pipeline_process(std::string stream_address);
+	void on_startBtn_pressed(std::string stream_address);
+	void start_stream(std::string stream_address);
+	void onTreeWidgetDoubleClicked(QTreeWidgetItem *item, int column);
 
 	QListWidget *list_widget;
 

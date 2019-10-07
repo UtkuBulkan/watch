@@ -22,6 +22,7 @@ public:
 	~DBConnection();
 	void add_camera(std::string camera_address);
 	void get_camera_list(std::vector<camera_list_item_t> &camera_list);
+	bool check_camera_exists(std::string camera_address);
 	int sql();
 	//static DBConnection* _default;
 

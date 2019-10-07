@@ -27,7 +27,7 @@ void DBConnection::preparetables()
 	try {
 		syslog(LOG_NOTICE, "Creating Tables");
 		statement = con->createStatement();
-		statement->execute("CREATE TABLE IF NOT EXISTS cameras (id INT, address VARCHAR(100), is_record_as_output INT, PRIMARY KEY (id))");
+		statement->execute("CREATE TABLE IF NOT EXISTS cameras (id INT AUTO_INCREMENT PRIMARY KEY, address VARCHAR(100), is_record_as_output INT)");
 		delete statement;
 		statement = con->createStatement();
 		statement->execute("CREATE TABLE IF NOT EXISTS recorded_files(id INT, address VARCHAR(200), record_timestamp VARCHAR(50))");
@@ -67,6 +67,17 @@ void DBConnection::add_camera(std::string camera_address)
 	} catch (std::exception &e) {
 		syslog(LOG_NOTICE, "Failed to add a new camera information into database.");
 	}
+}
+
+bool DBConnection::check_camera_exists(std::string camera_address)
+{
+	statement = con->createStatement();
+	sql::ResultSet *res = statement->executeQuery("SELECT * FROM cameras");
+	while(res->next()) {
+		if(camera_address == res->getString("address"))
+			return true;
+	}
+	return false;
 }
 
 DBConnection::~DBConnection()

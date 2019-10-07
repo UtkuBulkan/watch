@@ -15,6 +15,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	ui->listWidget->setIconSize(QSize(100, 100));
 
 	dbconnection = new DBConnection("localhost", "utku", "utku");
+	generate_camera_table();
+
+	connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onTreeWidgetDoubleClicked);
 }
 
 MainWindow::~MainWindow()
@@ -22,9 +25,15 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+void MainWindow::onTreeWidgetDoubleClicked(QTreeWidgetItem *item, int column)
+{
+	syslog(LOG_NOTICE, "Tree Widget Item double clicked");
+	std::cout << "Tree Widget Item double clicked:" << item->text(1).toStdString() << std::endl;
+	start_stream(item->text(1).toStdString());
+}
+
 void MainWindow::add_camera_list_item(QString id, QString address, QString output_recording)
 {
-
 	QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
 
 	treeItem->setText(0, id);
@@ -52,7 +61,6 @@ void MainWindow::generate_camera_table()
 	ui->treeWidget->setColumnCount(3);
 	ui->treeWidget->setHeaderLabels(QStringList() << "Id" << "Address" << "Record_output");
 	for(int i = 0; i < (int) camera_list.size(); i++) {
-		if(check_camera_list_item_exists(camera_list[i].address) == false)
 		add_camera_list_item(QString::fromStdString(std::to_string(camera_list[i].id)),
 				QString::fromStdString(camera_list[i].address),
 				QString::fromStdString(std::to_string(camera_list[i].is_record_as_output)));
@@ -61,10 +69,19 @@ void MainWindow::generate_camera_table()
 
 void MainWindow::on_startBtn_pressed()
 {
+	start_stream(ui->videoEdit->text().trimmed().toStdString());
+}
+
+void MainWindow::start_stream(std::string stream_address)
+{
 	using namespace cv;
 
-	dbconnection->add_camera(ui->videoEdit->text().trimmed().toStdString());
-	generate_camera_table();
+	if(dbconnection->check_camera_exists(stream_address) == true) {
+		syslog(LOG_NOTICE, "Camera has already been available in the database");
+	} else {
+		dbconnection->add_camera(stream_address);
+		add_camera_list_item(QString("0"), QString::fromStdString(stream_address), QString("0"));
+	}
 
 	if(video.isOpened())
 	{
@@ -87,7 +104,7 @@ void MainWindow::on_startBtn_pressed()
 		}
 	}
 	else {
-		if(!video.open(ui->videoEdit->text().trimmed().toStdString()))
+		if(!video.open(stream_address))
 		{
 			QMessageBox::critical(this,
 					"Video Error",
@@ -99,12 +116,12 @@ void MainWindow::on_startBtn_pressed()
 
 	ui->startBtn->setText("Stop");
 
-	camera_pipeline_process();
+	camera_pipeline_process(stream_address);
 
 	ui->startBtn->setText("Start");
 }
 
-void MainWindow::camera_pipeline_process()
+void MainWindow::camera_pipeline_process(std::string stream_address)
 {
 	setlogmask (LOG_UPTO (LOG_DEBUG));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -115,7 +132,7 @@ void MainWindow::camera_pipeline_process()
 	FaceRecognition *face_recognitor = new FaceRecognition();
 	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
 	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
-	Camera camera(ui->videoEdit->text().trimmed().toStdString());
+	Camera camera(stream_address);
 	camera.loop({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor, this);
 
 	closelog ();
