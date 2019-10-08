@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	ui->graphicsView->scene()->addItem(&pixmap);
 
 	ui->listWidget->setIconSize(QSize(100, 100));
+	ui->listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 	dbconnection = new DBConnection("localhost", "utku", "utku");
 	generate_camera_table();
