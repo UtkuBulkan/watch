@@ -8,11 +8,21 @@
 
 #include <vector>
 
+#include "qt/watch_qt_data.h"
+
 struct camera_list_item_t
 {
 	int id;
 	std::string address;
-	int is_record_as_output;
+	bool active;
+	bool face_detection;
+	bool face_recognition;
+	bool object_detection;
+	bool people_counter;
+	bool gender_prediction;
+	bool age_prediction;
+	bool heat_map_estimation;
+	bool record_detections_as_output_file;
 };
 
 class DBConnection
@@ -20,7 +30,8 @@ class DBConnection
 public:
 	DBConnection(const std::string& server, const std::string& user, const std::string& pass);
 	~DBConnection();
-	void add_camera(std::string camera_address);
+	void add_camera(std::string camera_address, CameraSettingsData &camera_settings_data);
+	void update_camera(std::string camera_address, CameraSettingsData &camera_settings_data);
 	void get_camera_list(std::vector<camera_list_item_t> &camera_list);
 	bool check_camera_exists(std::string camera_address);
 	int sql();

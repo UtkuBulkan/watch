@@ -1,8 +1,8 @@
+#include <syslog.h>
+#include <string>
+#include <QCoreApplication>
 #include "watch_qt.h"
 #include "ui_mainwindow.h"
-#include <QCoreApplication>
-
-#include <syslog.h>
 #include "camera_manager.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -26,20 +26,123 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::onTreeWidgetDoubleClicked(QTreeWidgetItem *item, int column)
+void MainWindow::on_push_button_for_settings_clicked()
 {
-	syslog(LOG_NOTICE, "Tree Widget Item double clicked");
-	std::cout << "Tree Widget Item double clicked:" << item->text(1).toStdString() << std::endl;
-	start_stream(item->text(1).toStdString());
+	syslog(LOG_NOTICE, "MainWindow::on_push_button_for_start_camera_stream Start");
+	std::cout << "Apply push button : " << camera_settings_window->get_checkbox_state(0) << std::endl;
+	CameraSettingsData camera_settings_data;
+
+	camera_settings_data.face_detection = camera_settings_window->get_checkbox_state(CHECKBOX_FACE_DETECTION);
+	camera_settings_data.face_recognition = camera_settings_window->get_checkbox_state(CHECKBOX_FACE_RECOGNITON);
+	camera_settings_data.object_detection = camera_settings_window->get_checkbox_state(CHECKBOX_OBJECT_DETECTION);
+	camera_settings_data.people_counter = camera_settings_window->get_checkbox_state(CHECKBOX_PEOPLE_COUNTER);
+	camera_settings_data.gender_prediction = camera_settings_window->get_checkbox_state(CHECKBOX_GENDER_PREDICTION);
+	camera_settings_data.age_prediction = camera_settings_window->get_checkbox_state(CHECKBOX_AGE_PREDICTION);
+	camera_settings_data.heat_map_estimation = camera_settings_window->get_checkbox_state(CHECKBOX_HEAT_MAP_ESTIMATION);
+	camera_settings_data.record_detections_as_output_file = camera_settings_window->get_checkbox_state(CHECKBOX_RECORD_DETECTIONS_AS_OUTPUT_FILE);
+	dbconnection->update_camera(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
+	update_camera_list_item(camera_settings_window->get_dialog_current_address(), camera_settings_data);
+	syslog(LOG_NOTICE, "MainWindow::on_push_button_for_start_camera_stream End");
 }
 
-void MainWindow::add_camera_list_item(QString id, QString address, QString output_recording)
+void MainWindow::on_push_button_for_start_camera_stream()
+{
+	syslog(LOG_NOTICE, "MainWindow::on_push_button_for_start_camera_stream Start");
+	std::cout << "Apply push button : " << camera_settings_window->get_checkbox_state(0) << std::endl;
+	CameraSettingsData camera_settings_data;
+
+	if(camera_settings_window->get_stream_active_state() > 0) {
+		camera_settings_data.active = false;
+	} else {
+		camera_settings_data.active = true;
+	}
+	camera_settings_window->set_start_button_state(camera_settings_data.active);
+	camera_settings_data.face_detection = camera_settings_window->get_checkbox_state(CHECKBOX_FACE_DETECTION);
+	camera_settings_data.face_recognition = camera_settings_window->get_checkbox_state(CHECKBOX_FACE_RECOGNITON);
+	camera_settings_data.object_detection = camera_settings_window->get_checkbox_state(CHECKBOX_OBJECT_DETECTION);
+	camera_settings_data.people_counter = camera_settings_window->get_checkbox_state(CHECKBOX_PEOPLE_COUNTER);
+	camera_settings_data.gender_prediction = camera_settings_window->get_checkbox_state(CHECKBOX_GENDER_PREDICTION);
+	camera_settings_data.age_prediction = camera_settings_window->get_checkbox_state(CHECKBOX_AGE_PREDICTION);
+	camera_settings_data.heat_map_estimation = camera_settings_window->get_checkbox_state(CHECKBOX_HEAT_MAP_ESTIMATION);
+	camera_settings_data.record_detections_as_output_file = camera_settings_window->get_checkbox_state(CHECKBOX_RECORD_DETECTIONS_AS_OUTPUT_FILE);
+	dbconnection->update_camera(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
+	update_camera_list_item(camera_settings_window->get_dialog_current_address(), camera_settings_data);
+
+	if(camera_settings_data.active > 0) {
+		start_stream(camera_settings_window->get_dialog_current_address().toStdString());
+	} else {
+		//stop_stream(camera_settings_window->get_dialog_current_address().toStdString());
+	}
+	syslog(LOG_NOTICE, "MainWindow::on_push_button_for_start_camera_stream End");
+}
+
+void MainWindow::onTreeWidgetDoubleClicked(QTreeWidgetItem *item, int column)
+{
+	syslog(LOG_NOTICE, "MainWindow::onTreeWidgetDoubleClicked Start");
+	std::cout << "Tree Widget Item double clicked:" << item->text(1).toStdString() << std::endl;
+
+	CameraSettingsData camera_settings_data;
+	camera_settings_data.active = item->text(2).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.face_detection = item->text(3).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.face_recognition = item->text(4).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.object_detection = item->text(5).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.people_counter = item->text(6).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.gender_prediction = item->text(7).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.age_prediction = item->text(8).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.heat_map_estimation = item->text(9).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.record_detections_as_output_file = item->text(10).toStdString() == "Yes" ? 1 : 0;
+
+	camera_settings_window = new CameraSettingsWindow(item->text(1), camera_settings_data);
+	connect(camera_settings_window,
+			&CameraSettingsWindow::set_camera_specific_settings,
+			this,
+			&MainWindow::on_push_button_for_settings_clicked);
+	connect(camera_settings_window,
+			&CameraSettingsWindow::start_camera_stream,
+			this,
+			&MainWindow::on_push_button_for_start_camera_stream);
+	camera_settings_window->exec();
+	syslog(LOG_NOTICE, "MainWindow::onTreeWidgetDoubleClicked End");
+}
+
+void MainWindow::add_camera_list_item(QString id, QString address, CameraSettingsData &camera_settings_data)
 {
 	QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
 
 	treeItem->setText(0, id);
 	treeItem->setText(1, address);
-	treeItem->setText(2, output_recording);
+	treeItem->setText(2, camera_settings_data.active > 0 ? "Yes" : "No");
+	treeItem->setText(3, camera_settings_data.face_detection > 0 ? "Yes" : "No");
+	treeItem->setText(4, camera_settings_data.face_recognition > 0 ? "Yes" : "No");
+	treeItem->setText(5, camera_settings_data.object_detection > 0 ? "Yes" : "No");
+	treeItem->setText(6, camera_settings_data.people_counter > 0 ? "Yes" : "No");
+	treeItem->setText(7, camera_settings_data.gender_prediction > 0 ? "Yes" : "No");
+	treeItem->setText(8, camera_settings_data.age_prediction > 0 ? "Yes" : "No");
+	treeItem->setText(9, camera_settings_data.heat_map_estimation > 0 ? "Yes" : "No");
+	treeItem->setText(10, camera_settings_data.record_detections_as_output_file > 0 ? "Yes" : "No");
+}
+
+void MainWindow::update_camera_list_item(QString address, CameraSettingsData &camera_settings_data)
+{
+	for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++) {
+		QTreeWidgetItem *treeItem = ui->treeWidget->topLevelItem(i);
+		QString current_address = treeItem->text(1);
+
+		std::cout << "UPDATE Tree Widget Item double clicked:" << current_address.toStdString() << std::endl;
+
+		if (current_address == address) {
+			treeItem->setText(2, camera_settings_data.active > 0 ? "Yes" : "No");
+			treeItem->setText(3, camera_settings_data.face_detection > 0 ? "Yes" : "No");
+			treeItem->setText(4, camera_settings_data.face_recognition > 0 ? "Yes" : "No");
+			treeItem->setText(5, camera_settings_data.object_detection > 0 ? "Yes" : "No");
+			treeItem->setText(6, camera_settings_data.people_counter > 0 ? "Yes" : "No");
+			treeItem->setText(7, camera_settings_data.gender_prediction > 0 ? "Yes" : "No");
+			treeItem->setText(8, camera_settings_data.age_prediction > 0 ? "Yes" : "No");
+			treeItem->setText(9, camera_settings_data.heat_map_estimation > 0 ? "Yes" : "No");
+			treeItem->setText(10, camera_settings_data.record_detections_as_output_file > 0 ? "Yes" : "No");
+			return;
+		}
+	}
 }
 
 bool MainWindow::check_camera_list_item_exists(std::string address)
@@ -56,70 +159,103 @@ bool MainWindow::check_camera_list_item_exists(std::string address)
 
 void MainWindow::generate_camera_table()
 {
+	syslog(LOG_NOTICE, "MainWindow::generate_camera_table Start");
 	std::vector<camera_list_item_t> camera_list;
 	dbconnection->get_camera_list(camera_list);
 
 	ui->treeWidget->setColumnCount(3);
-	ui->treeWidget->setHeaderLabels(QStringList() << "Id" << "Address" << "Record_output");
+	ui->treeWidget->setHeaderLabels(QStringList() << "Id" << "Address" << "active" << "face detection" << "face recognition" << "object detection"
+			<< "people counter" << "gender prediction" << "age prediction" << "heat map" << "record as output");
 	for(int i = 0; i < (int) camera_list.size(); i++) {
+		CameraSettingsData camera_settings_data;
+		camera_settings_data.active = camera_list[i].active;
+		camera_settings_data.face_detection = camera_list[i].face_detection;
+		camera_settings_data.face_recognition = camera_list[i].face_recognition;
+		camera_settings_data.object_detection = camera_list[i].object_detection;
+		camera_settings_data.people_counter = camera_list[i].people_counter;
+		camera_settings_data.gender_prediction = camera_list[i].gender_prediction;
+		camera_settings_data.age_prediction = camera_list[i].age_prediction;
+		camera_settings_data.heat_map_estimation = camera_list[i].heat_map_estimation;
+		camera_settings_data.record_detections_as_output_file = camera_list[i].record_detections_as_output_file;
+
 		add_camera_list_item(QString::fromStdString(std::to_string(camera_list[i].id)),
 				QString::fromStdString(camera_list[i].address),
-				QString::fromStdString(std::to_string(camera_list[i].is_record_as_output)));
+				camera_settings_data);
 	}
+	syslog(LOG_NOTICE, "MainWindow::generate_camera_table End");
 }
 
 void MainWindow::on_startBtn_pressed()
 {
-	start_stream(ui->videoEdit->text().trimmed().toStdString());
-}
+	std::string stream_address = ui->videoEdit->text().trimmed().toStdString();
 
-void MainWindow::start_stream(std::string stream_address)
-{
-	using namespace cv;
+	if(check_stream_availability(stream_address) == false) {
+		syslog(LOG_NOTICE, "Address for the Camera is not accessible.");
+		return;
+	}
 
 	if(dbconnection->check_camera_exists(stream_address) == true) {
 		syslog(LOG_NOTICE, "Camera has already been available in the database");
 	} else {
-		dbconnection->add_camera(stream_address);
-		add_camera_list_item(QString("0"), QString::fromStdString(stream_address), QString("0"));
+		CameraSettingsData camera_settings_data;
+		camera_settings_data.active = Qt::Unchecked;
+		camera_settings_data.face_detection = Qt::Checked;
+		camera_settings_data.face_recognition = Qt::Checked;
+		camera_settings_data.object_detection = Qt::Unchecked;
+		camera_settings_data.people_counter = Qt::Unchecked;
+		camera_settings_data.gender_prediction = Qt::Checked;
+		camera_settings_data.age_prediction = Qt::Checked;
+		camera_settings_data.heat_map_estimation = Qt::Unchecked;
+		camera_settings_data.record_detections_as_output_file = Qt::Unchecked;
+		add_camera_list_item(QString("0"), QString::fromStdString(stream_address), camera_settings_data);
+		dbconnection->add_camera(stream_address, camera_settings_data);
 	}
+}
 
-	if(video.isOpened())
+bool MainWindow::check_stream_availability(std::string stream_address)
+{
+	cv::VideoCapture local_video;
+
+	if(local_video.isOpened())
 	{
-		ui->startBtn->setText("Start");
-		video.release();
-		return;
+		local_video.release();
+		return false;
 	}
 
 	bool isCamera;
 	int cameraIndex = ui->videoEdit->text().toInt(&isCamera);
 	if(isCamera)
 	{
-		if(!video.open(cameraIndex))
+		if(!local_video.open(cameraIndex))
 		{
 			QMessageBox::critical(this,
 					"Camera Error",
 					"Make sure you entered a correct camera index,"
 					"<br>or that the camera is not being accessed by another program!");
-			return;
+			return false;
 		}
 	}
 	else {
-		if(!video.open(stream_address))
+		if(!local_video.open(stream_address))
 		{
 			QMessageBox::critical(this,
 					"Video Error",
 					"Make sure you entered a correct and supported video file path,"
 					"<br>or a correct RTSP feed URL!");
-			return;
+			return false;
 		}
 	}
+	return true;
+}
 
-	ui->startBtn->setText("Stop");
-
+void MainWindow::start_stream(std::string stream_address)
+{
 	camera_pipeline_process(stream_address);
+}
 
-	ui->startBtn->setText("Start");
+void MainWindow::stop_stream(std::string stream_address)
+{
+	//camera_pipeline_process(stream_address);
 }
 
 void MainWindow::camera_pipeline_process(std::string stream_address)

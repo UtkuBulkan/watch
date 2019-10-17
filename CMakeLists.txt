@@ -16,7 +16,7 @@ include_directories(include)
 set(SOURCES src/watch.cpp src/camera_manager.cpp src/objectdetection.cpp 
 			src/objecttracker.cpp src/objectdetection_yolo.cpp src/objectdetection_yolotiny.cpp
 			src/objectdetection_ssdcaffe.cpp src/objectdetection_gender_caffe.cpp src/objectdetection_age_caffe.cpp
-			src/facerecognition.cpp src/qt/watch_qt_main.cpp src/qt/watch_qt.cpp
+			src/facerecognition.cpp src/qt/watch_qt_main.cpp src/qt/watch_qt.cpp src/qt/watch_dialog_qt.cpp
 			src/database/watch_mysql.cpp)
 
 find_package(OpenCV)

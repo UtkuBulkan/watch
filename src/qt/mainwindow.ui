@@ -94,19 +94,76 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>746</width>
+            <width>1500</width>
             <height>71</height>
            </rect>
           </property>
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="columnCount">
+           <number>10</number>
+          </property>
+          <attribute name="headerCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="headerHighlightSections">
+           <bool>true</bool>
+          </attribute>
           <column>
            <property name="text">
             <string notr="true">1</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">2</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">3</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">4</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">5</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">6</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">7</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">8</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">9</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">10</string>
            </property>
           </column>
          </widget>
@@ -150,7 +207,7 @@
         <item>
          <widget class="QPushButton" name="startBtn">
           <property name="text">
-           <string>Start</string>
+           <string>Add Camera</string>
           </property>
          </widget>
         </item>
