@@ -69,7 +69,7 @@ void MainWindow::on_push_button_for_start_camera_stream()
 	update_camera_list_item(camera_settings_window->get_dialog_current_address(), camera_settings_data);
 
 	if(camera_settings_data.active > 0) {
-		start_stream(camera_settings_window->get_dialog_current_address().toStdString());
+		start_stream(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
 	} else {
 		//stop_stream(camera_settings_window->get_dialog_current_address().toStdString());
 	}
@@ -248,9 +248,9 @@ bool MainWindow::check_stream_availability(std::string stream_address)
 	return true;
 }
 
-void MainWindow::start_stream(std::string stream_address)
+void MainWindow::start_stream(std::string stream_address, CameraSettingsData &camera_settings_data)
 {
-	camera_pipeline_process(stream_address);
+	camera_pipeline_process(stream_address, camera_settings_data);
 }
 
 void MainWindow::stop_stream(std::string stream_address)
@@ -258,7 +258,7 @@ void MainWindow::stop_stream(std::string stream_address)
 	//camera_pipeline_process(stream_address);
 }
 
-void MainWindow::camera_pipeline_process(std::string stream_address)
+void MainWindow::camera_pipeline_process(std::string stream_address, CameraSettingsData &camera_settings_data)
 {
 	setlogmask (LOG_UPTO (LOG_DEBUG));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -269,8 +269,10 @@ void MainWindow::camera_pipeline_process(std::string stream_address)
 	FaceRecognition *face_recognitor = new FaceRecognition();
 	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
 	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
-	Camera camera(stream_address);
-	camera.loop({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor, this);
+	Camera camera(stream_address, camera_settings_data);
+	camera.set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
+	camera.camera_set_ui(this);
+	camera.loop();
 
 	closelog ();
 }
