@@ -51,7 +51,7 @@
 #define PIPELINE_SIGNAL_STOP 4
 #define PIPELINE_SIGNAL_CHANGE_SETTINGS 8
 
-#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 24
+#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 1
 //#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
 
 class Camera
@@ -73,6 +73,7 @@ private:
 	std::string m_output_file_path;
 	cv::VideoCapture capture;
 	cv::VideoWriter outputVideo;
+	double m_fps;
 
 	std::vector<ObjectDetector*> m_object_detectors;
 	ObjectTracker *m_object_tracker;

@@ -28,13 +28,16 @@
 #include <iomanip>
 #include <ctime>
 #include <sstream>
+#include <chrono>
 #include <syslog.h>
 #include "camera_manager.h"
 
-Camera::Camera(std::string input_device_name, CameraSettingsData &camera_settings_data) : m_camera_settings_data(camera_settings_data)
+Camera::Camera(std::string input_device_name, CameraSettingsData &camera_settings_data)
 {
 	syslog(LOG_NOTICE, "Camera::Camera Begin");
 	m_input_device_name = input_device_name;
+
+	m_camera_settings_data = camera_settings_data;
 
 	capture.open(m_input_device_name);
 	if ( !capture.isOpened	() ) {
@@ -62,7 +65,7 @@ void Camera::enable_recording_as_output_file()
 	output_file_path_string_stream << "./recordings/" << m_input_device_name << "-" << std::put_time(&tm, "%d-%m-%Y-%H-%M-%S") << ".mp4";
 	m_output_file_path = output_file_path_string_stream.str();
 
-	outputVideo.open(m_output_file_path, cv::CAP_FFMPEG, codec, capture.get(cv::CAP_PROP_FPS), S, true);
+	outputVideo.open(m_output_file_path, cv::CAP_FFMPEG, codec, m_fps, S, true);
 
 	syslog(LOG_NOTICE, "Input file fourcc: %d, %d", codec, ex);
 	syslog(LOG_NOTICE, "Input file width: %d", S.width);
@@ -124,6 +127,8 @@ void Camera::loop()
 	int loop_state = 1;
 	cv::Mat frame;
 	int framecount = 0;
+	double momenteraly_fps = 0, overall_fps = 0;
+	int64_t start_time = 0, end_time = 0;
 
 	while(loop_state) {
 		std::unique_lock<std::mutex> lock(m_mutex);
@@ -141,20 +146,29 @@ void Camera::loop()
 
 		capture >> frame;
 
-		if(framecount == 0) {
-			syslog(LOG_NOTICE, "Frame count : %d", framecount);
-			syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
-		}
-
 		if (frame.empty()) {
 			syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
 			break;
 		}
 
+		if(framecount == 0) {
+			m_fps = capture.get(cv::CAP_PROP_FPS);
+			syslog(LOG_NOTICE, "Frame count : %d", framecount);
+			syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
+		}
+
+		if(start_time && end_time) {
+			momenteraly_fps = 1.0 / ((end_time - start_time)/1000000000.0);
+			overall_fps = ((framecount-1) * overall_fps + momenteraly_fps) / (framecount);
+		}
+
 		framecount++;
+		if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES != 0) {
+			continue;
+		}
+
+		start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		{
-			if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES != 0)
-				continue;
 			/*if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES == 0) {
 				if(object_detector && object_tracker) {
 					object_tracker->object_tracker_with_new_frame(frame, object_detector->process_frame(frame));
@@ -200,11 +214,10 @@ void Camera::loop()
 							m_main_window->add_detected_face(qimage_detected_face);
 						}
 					}
-
 					display_statistics(frame, predicted_string, gender, age, label_location);
 				}
 			}
-			cv::putText(frame, cv::format("LSBU - frame # %d", framecount), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 255), 2);
+			cv::putText(frame, cv::format("LSBU-F#%d,fps#%2.2lf,video_fps=%d", framecount, overall_fps, (int)m_fps), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
 
 			if (m_camera_settings_data.record_detections_as_output_file > 0) {
 				/* Outputting captured frames to a video file */
@@ -214,16 +227,12 @@ void Camera::loop()
 				}
 				outputVideo << frame;
 			}
-
-			//cv::imshow(m_input_device_name, frame);
-
 			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
 			m_main_window->setPixmap(qimg);
-
 			/* Sending the data as a Kafka producer */
 			/* video_analyser_kafka_producer(j.dump().c_str(), "TutorialTopic"); */
 		}
-		if(cv::waitKey(30) >= 0) break;
+		end_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}
 	syslog(LOG_NOTICE, "Camera::loop End");
 }

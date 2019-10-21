@@ -3,7 +3,7 @@
 #include "ui_mainwindow.h"
 #include "pipeline_manager.h"
 
-PipelineManager pipeline_manager;
+PipelineManager *pipeline_manager;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -19,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	generate_camera_table();
 
 	connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onTreeWidgetDoubleClicked);
+
+	pipeline_manager= new PipelineManager(this);
 }
 
 MainWindow::~MainWindow()
@@ -251,22 +253,8 @@ bool MainWindow::check_stream_availability(std::string stream_address)
 void MainWindow::start_stream(std::string stream_address, CameraSettingsData &camera_settings_data)
 {
 	syslog(LOG_NOTICE, "MainWindow::start_stream Start");
-	setlogmask (LOG_UPTO (LOG_DEBUG));
-	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
-	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
-	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
-	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
-	FaceRecognition *face_recognitor = new FaceRecognition();
-	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
-	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
-	Camera camera(stream_address, camera_settings_data);
-	camera.set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
-	camera.camera_set_ui(this);
-	pipeline_manager.add(&camera);
-	camera.start_thread();
-
-	closelog ();
+	pipeline_manager->add(stream_address, camera_settings_data);
 
 	syslog(LOG_NOTICE, "MainWindow::start_stream End");
 }
@@ -275,7 +263,7 @@ void MainWindow::stop_stream(std::string stream_address)
 {
 	syslog(LOG_NOTICE, "MainWindow::stop_stream Start");
 	//camera_pipeline_stop(stream_address);
-	pipeline_manager.remove(stream_address);
+	pipeline_manager->remove(stream_address);
 	syslog(LOG_NOTICE, "MainWindow::stop_stream End");
 }
 
