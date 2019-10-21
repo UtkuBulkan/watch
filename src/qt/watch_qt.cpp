@@ -1,9 +1,9 @@
-#include <syslog.h>
-#include <string>
 #include <QCoreApplication>
 #include "watch_qt.h"
 #include "ui_mainwindow.h"
-#include "camera_manager.h"
+#include "pipeline_manager.h"
+
+PipelineManager pipeline_manager;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -71,7 +71,7 @@ void MainWindow::on_push_button_for_start_camera_stream()
 	if(camera_settings_data.active > 0) {
 		start_stream(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
 	} else {
-		//stop_stream(camera_settings_window->get_dialog_current_address().toStdString());
+		stop_stream(camera_settings_window->get_dialog_current_address().toStdString());
 	}
 	syslog(LOG_NOTICE, "MainWindow::on_push_button_for_start_camera_stream End");
 }
@@ -250,16 +250,7 @@ bool MainWindow::check_stream_availability(std::string stream_address)
 
 void MainWindow::start_stream(std::string stream_address, CameraSettingsData &camera_settings_data)
 {
-	camera_pipeline_process(stream_address, camera_settings_data);
-}
-
-void MainWindow::stop_stream(std::string stream_address)
-{
-	//camera_pipeline_process(stream_address);
-}
-
-void MainWindow::camera_pipeline_process(std::string stream_address, CameraSettingsData &camera_settings_data)
-{
+	syslog(LOG_NOTICE, "MainWindow::start_stream Start");
 	setlogmask (LOG_UPTO (LOG_DEBUG));
 	openlog ("watch", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
@@ -272,9 +263,20 @@ void MainWindow::camera_pipeline_process(std::string stream_address, CameraSetti
 	Camera camera(stream_address, camera_settings_data);
 	camera.set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
 	camera.camera_set_ui(this);
-	camera.loop();
+	pipeline_manager.add(&camera);
+	camera.start_thread();
 
 	closelog ();
+
+	syslog(LOG_NOTICE, "MainWindow::start_stream End");
+}
+
+void MainWindow::stop_stream(std::string stream_address)
+{
+	syslog(LOG_NOTICE, "MainWindow::stop_stream Start");
+	//camera_pipeline_stop(stream_address);
+	pipeline_manager.remove(stream_address);
+	syslog(LOG_NOTICE, "MainWindow::stop_stream End");
 }
 
 void MainWindow::setPixmap(QImage &qimg)

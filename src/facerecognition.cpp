@@ -53,7 +53,7 @@ std::string FaceRecognition::getLabelInfo(int &predicted_id)
 void FaceRecognition::display_statistics(cv::Mat &frame, std::string id)
 {
 	syslog(LOG_NOTICE, "FaceRecognition::display_statistics Begin");
-	cv::putText(frame, cv::format("ID #%s", id.c_str()), cv::Size(1,20), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
+	cv::putText(frame, cv::format("%s", id.c_str()), cv::Size(1,20), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
 	//cv::putText(frame, cv::format("C : %0.0lf", confidence), cv::Size(1,40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
 	syslog(LOG_NOTICE, "FaceRecognition::display_statistics Begin");
 }
@@ -133,7 +133,7 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
 	syslog(LOG_NOTICE, "Prediction : %d, Predicted string : %s, confidence : %lf", predicted_label_id, predicted_string.c_str(), confidence);
 
 	if(confidence > 100.0) {
-		predicted_string = cv::format("%d", train_new_sample(detected_face));
+		predicted_string = cv::format("ID #%d", train_new_sample(detected_face));
 		previously_detected = false;
 	} else {
 		previously_detected = true;
@@ -163,7 +163,10 @@ int FaceRecognition::train_new_sample(cv::Mat &detected_face)
 	std::vector<cv::Mat> vec_image;
 	vec_image.push_back(detected_face);
 	model->update(vec_image, vec_id);
-	model->setLabelInfo(current_id, std::to_string(current_id));
+	std::ostringstream current_id_string_stream;
+	current_id_string_stream << "ID #" << std::to_string(current_id);
+	std::string current_id_string = current_id_string_stream.str();
+	model->setLabelInfo(current_id, current_id_string);
 	last_detected_id++;
 	//model->write(face_recognition_model_database);
 	syslog(LOG_NOTICE, "FaceRecognition::train_new_sample End");

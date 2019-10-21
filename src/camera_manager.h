@@ -24,7 +24,12 @@
  * SOFTWARE.
  *
  */
+#ifndef _CAMERA_MANAGER_H_
+#define _CAMERA_MANAGER_H_
+
+#include <iostream>
 #include <string>
+#include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <opencv2/opencv.hpp>
@@ -41,9 +46,10 @@
 
 #include "qt/watch_qt_data.h"
 
-#define PIPELINE_SIGNAL_START 0
-#define PIPELINE_SIGNAL_STOP 1
-#define PIPELINE_SIGNAL_CHANGE_SETTINGS 2
+#define PIPELINE_SIGNAL_NO_EVENT 0
+#define PIPELINE_SIGNAL_START 2
+#define PIPELINE_SIGNAL_STOP 4
+#define PIPELINE_SIGNAL_CHANGE_SETTINGS 8
 
 #define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 24
 //#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
@@ -56,10 +62,15 @@ public:
 	void set_models(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor);
 	void camera_set_ui(MainWindow *main_window);
 
+	void start_thread();
 	void loop();
 	void display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location);
+
+	void event_listener(int event_recieved);
+	std::string get_input_device_name();
 private:
 	std::string m_input_device_name;
+	std::string m_output_file_path;
 	cv::VideoCapture capture;
 	cv::VideoWriter outputVideo;
 
@@ -68,6 +79,11 @@ private:
 	FaceRecognition *m_face_recognitor;
 	MainWindow *m_main_window;
 
-	std::mutex mutex;
-	std::condition_variable condition_variable;
+	CameraSettingsData m_camera_settings_data;
+
+	std::mutex m_mutex;
+	int m_event_recieved;
+
+	void enable_recording_as_output_file();
 };
+#endif /* _CAMERA_MANAGER_H_ */
