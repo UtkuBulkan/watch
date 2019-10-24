@@ -43,6 +43,7 @@ Camera::Camera(std::string input_device_name, CameraSettingsData &camera_setting
 	if ( !capture.isOpened	() ) {
 		throw "Error opening file.\n";
 	}
+	framecount = 0;
 	syslog(LOG_NOTICE, "Camera::Camera End");
 }
 
@@ -97,58 +98,21 @@ void Camera::set_models(std::vector<ObjectDetector*> object_detectors, ObjectTra
 	m_face_recognitor = face_recognitor;
 }
 
-void Camera::camera_set_ui(MainWindow *main_window)
-{
-	m_main_window = main_window;
-}
-
-void Camera::start_thread()
-{
-	syslog(LOG_NOTICE, "Camera::start_thread Start");
-	loop();
-	syslog(LOG_NOTICE, "Camera::start_thread End");
-}
-
-void Camera::event_listener(int event_recieved)
-{
-	std::unique_lock<std::mutex> lock(m_mutex);
-	m_event_recieved = event_recieved;
-	lock.unlock();
-}
 std::string Camera::get_input_device_name()
 {
 	return m_input_device_name;
 }
 
-void Camera::loop()
+void Camera::process_frame()
 {
 	syslog(LOG_NOTICE, "Camera::loop Begin");
 
-	int loop_state = 1;
-	cv::Mat frame;
-	int framecount = 0;
-	double momenteraly_fps = 0, overall_fps = 0;
-	int64_t start_time = 0, end_time = 0;
-
-	while(loop_state) {
-		std::unique_lock<std::mutex> lock(m_mutex);
-		if(m_event_recieved != PIPELINE_SIGNAL_NO_EVENT) {
-			if(m_event_recieved == PIPELINE_SIGNAL_START) {
-				loop_state = 1;
-			} else if(m_event_recieved == PIPELINE_SIGNAL_STOP) {
-				loop_state = 0;
-			} else if(m_event_recieved == PIPELINE_SIGNAL_CHANGE_SETTINGS) {
-
-			}
-			m_event_recieved = PIPELINE_SIGNAL_NO_EVENT;
-		}
-		lock.unlock();
-
+	{
 		capture >> frame;
 
 		if (frame.empty()) {
 			syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
-			break;
+			return; //break;
 		}
 
 		if(framecount == 0) {
@@ -157,17 +121,11 @@ void Camera::loop()
 			syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
 		}
 
-		if(start_time && end_time) {
-			momenteraly_fps = 1.0 / ((end_time - start_time)/1000000000.0);
-			overall_fps = ((framecount-1) * overall_fps + momenteraly_fps) / (framecount);
-		}
-
 		framecount++;
 		if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES != 0) {
-			continue;
+			return; //continue;
 		}
 
-		start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		{
 			/*if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES == 0) {
 				if(object_detector && object_tracker) {
@@ -180,6 +138,7 @@ void Camera::loop()
 					object_tracker->object_tracker_update_only(frame);
 				}
 			}*/
+			int64_t start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 			if (m_camera_settings_data.face_detection > 0) {
 				std::vector<std::pair<cv::Mat, cv::Point> > detected_faces;
 				m_object_detectors[0]->process_frame(frame, detected_faces);
@@ -211,28 +170,30 @@ void Camera::loop()
 						if(!previously_detected) {
 							QImage qimage_detected_face(detected_faces[i].first.data, detected_faces[i].first.cols, detected_faces[i].first.rows,
 									detected_faces[i].first.step, QImage::Format_RGB888);
-							m_main_window->add_detected_face(qimage_detected_face);
+							emit loop_add_detected_face(qimage_detected_face);
 						}
 					}
 					display_statistics(frame, predicted_string, gender, age, label_location);
 				}
 			}
+			int64_t end_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+			if(start_time && end_time) {
+				double momenteraly_fps = 1.0 / ((end_time - start_time)/1000000000.0);
+				overall_fps = ((framecount-1) * overall_fps + momenteraly_fps) / (framecount);
+			}
+
 			cv::putText(frame, cv::format("LSBU-F#%d,fps#%2.2lf,video_fps=%d", framecount, overall_fps, (int)m_fps), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+			emit loop_set_pixmap(qimg,  QString::fromStdString(m_input_device_name));
 
 			if (m_camera_settings_data.record_detections_as_output_file > 0) {
-				/* Outputting captured frames to a video file */
-
 				if(m_output_file_path.empty()) {
 					enable_recording_as_output_file();
 				}
 				outputVideo << frame;
 			}
-			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-			m_main_window->setPixmap(qimg);
-			/* Sending the data as a Kafka producer */
-			/* video_analyser_kafka_producer(j.dump().c_str(), "TutorialTopic"); */
 		}
-		end_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}
 	syslog(LOG_NOTICE, "Camera::loop End");
 }
