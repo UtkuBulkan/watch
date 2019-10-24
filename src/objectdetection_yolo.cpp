@@ -146,6 +146,7 @@ std::string ObjectDetector_Yolo::process_frame(cv::Mat &frame, std::vector<std::
 	std::string label;
 	cv::Mat blob;
 	double freq, t;
+	(void)detections;
 
 	syslog(LOG_DEBUG, "ObjectDetector_Yolo::process_frame Begin");
 

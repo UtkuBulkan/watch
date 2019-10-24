@@ -50,17 +50,27 @@ ObjectDetector_AgeCaffe::~ObjectDetector_AgeCaffe() {
 
 void ObjectDetector_AgeCaffe::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat& frame)
 {
+	(void)classId;
+	(void)confidence;
+	(void)left;
+	(void)top;
+	(void)right;
+	(void)bottom;
+	(void)frame;
 	syslog(LOG_NOTICE, "ObjectDetector_AgeCaffe::draw_box Begin");
 	syslog(LOG_NOTICE, "ObjectDetector_AgeCaffe::draw_box End");
 }
 
 void ObjectDetector_AgeCaffe::post_process(cv::Mat& frame, std::vector<cv::Mat> detection)
 {
+	(void)frame;
+	(void)detection;
 	syslog(LOG_NOTICE, "ObjectDetector_AgeCaffe::post_process Begin");
 	syslog(LOG_NOTICE, "ObjectDetector_AgeCaffe::post_process End");
 }
 
 std::string ObjectDetector_AgeCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
+	(void)detections;
 	syslog(LOG_NOTICE, "ObjectDetector_AgeCaffe::process_frame Begin");
 	std::vector<std::string> ageList = {"(0-2)", "(4-6)", "(8-12)", "(15-20)", "(25-32)", "(38-43)", "(48-53)", "(60-100)"};
 

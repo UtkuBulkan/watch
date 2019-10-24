@@ -125,12 +125,3 @@ DBConnection::~DBConnection()
 	delete statement;
 	delete con;
 }
-
-void DBConnection::logLastError()
-{
-}
-
-int DBConnection::sql()
-{
-}
-

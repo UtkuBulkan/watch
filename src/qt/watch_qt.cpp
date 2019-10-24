@@ -105,6 +105,7 @@ void MainWindow::on_push_button_for_start_camera_stream()
 
 void MainWindow::onTreeWidgetDoubleClicked(QTreeWidgetItem *item, int column)
 {
+	(void)column;
 	syslog(LOG_NOTICE, "MainWindow::onTreeWidgetDoubleClicked Start");
 	std::cout << "Tree Widget Item double clicked:" << item->text(1).toStdString() << std::endl;
 
@@ -321,6 +322,7 @@ void MainWindow::add_detected_face(QImage detected_face)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+	(void)event;
 	/*if(view_port_vector[0].video.isOpened())
 	{
 		QMessageBox::warning(this,

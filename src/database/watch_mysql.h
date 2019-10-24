@@ -34,16 +34,14 @@ public:
 	void update_camera(std::string camera_address, CameraSettingsData &camera_settings_data);
 	void get_camera_list(std::vector<camera_list_item_t> &camera_list);
 	bool check_camera_exists(std::string camera_address);
-	int sql();
-	//static DBConnection* _default;
 
 protected:
-	void logLastError();
 	std::string m_server; //eg: 192.168.1.1 or localhost:3306
 	std::string m_user;
 	std::string m_pass;
 	std::string m_db;
 	int m_port;
+
 private:
 	void preparetables();
 	sql::mysql::MySQL_Driver *driver;
@@ -51,4 +49,3 @@ private:
 	sql::Statement *statement;
 	sql::PreparedStatement *prepare_statement;
 };
-//DBConnection* DBConnection::_default=NULL;
