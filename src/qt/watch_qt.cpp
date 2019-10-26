@@ -36,13 +36,13 @@ void MainWindow::create_view_port(std::string input_name)
 			return;
 		}
 	}
-	int max_dimension = 1;
 
-	while(view_port_vector.size() > max_dimension*max_dimension) {
+	int max_dimension = 1;
+	while((int) view_port_vector.size() > max_dimension*max_dimension) {
 		max_dimension++;
 	}
 
-	for(int i=0;i<view_port_vector.size();i++)
+	for(int i=0;i<(int)view_port_vector.size();i++)
 	{
 		ui->gridLayout_4->removeWidget(&view_port_vector[i]->graphics_view);
 		std::cout << "Removing : " << i << std::endl;
@@ -52,7 +52,7 @@ void MainWindow::create_view_port(std::string input_name)
 	view_port->graphics_view.scene()->addItem(&view_port->pixmap);
 	view_port->input_name = input_name;
 	view_port_vector.push_back(view_port);
-	for(int count=0;count<view_port_vector.size();count++)
+	for(int count=0;count<(int)view_port_vector.size();count++)
 	{
 		int i = count%max_dimension;
 		int k = (count/max_dimension);
