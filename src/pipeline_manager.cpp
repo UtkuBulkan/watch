@@ -49,6 +49,12 @@ void PipelineManager::loop()
 void PipelineManager::add(std::string stream_address, CameraSettingsData &camera_settings_data)
 {
 	syslog(LOG_NOTICE, "PipelineManager::add Start");
+	for(int i = 0; i<(int)playlist.size(); i++) {
+		if (playlist[i]->get_input_device_name() == stream_address) {
+			syslog(LOG_NOTICE, "PipelineManager::add Already in pipeline, discarding request.");
+			return;
+		}
+	}
 	std::unique_lock<std::mutex> lock(m_mutex);
 	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
 	Camera *camera = new Camera(stream_address, camera_settings_data);

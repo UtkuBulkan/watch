@@ -36,14 +36,34 @@ void MainWindow::create_view_port(std::string input_name)
 			return;
 		}
 	}
+	int max_dimension = 1;
 
+	while(view_port_vector.size() > max_dimension*max_dimension) {
+		max_dimension++;
+	}
+
+	for(int i=0;i<view_port_vector.size();i++)
+	{
+		ui->gridLayout_4->removeWidget(&view_port_vector[i]->graphics_view);
+		std::cout << "Removing : " << i << std::endl;
+	}
 	ViewPort *view_port = new ViewPort();
-	ui->gridLayout_4->addWidget(&view_port->graphics_view,0,view_port_vector.size(),1,1);
 	view_port->graphics_view.setScene(&view_port->graphics_scene);
 	view_port->graphics_view.scene()->addItem(&view_port->pixmap);
 	view_port->input_name = input_name;
-
 	view_port_vector.push_back(view_port);
+	for(int count=0;count<view_port_vector.size();count++)
+	{
+		int i = count%max_dimension;
+		int k = (count/max_dimension);
+		view_port_vector[count]->graphics_view.setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+		view_port_vector[count]->graphics_view.fitInView(view_port_vector[count]->graphics_scene.sceneRect(), Qt::KeepAspectRatio);
+		view_port_vector[count]->graphics_view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		view_port_vector[count]->graphics_view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		ui->gridLayout_4->addWidget(&view_port_vector[count]->graphics_view,i,k);
+		std::cout << "Adding again  : " << k << "," << i << std::endl;
+	}
+
 	syslog(LOG_NOTICE, "MainWindow::create_view_port End");
 }
 
@@ -280,11 +300,6 @@ void MainWindow::start_stream(std::string stream_address, CameraSettingsData &ca
 {
 	syslog(LOG_NOTICE, "MainWindow::start_stream Start");
 	pipeline_manager->add(stream_address, camera_settings_data);
-	for(unsigned int i=0;i<view_port_vector.size();i++) {
-		if(view_port_vector[i]->input_name == stream_address) {
-			break;
-		}
-	}
 	syslog(LOG_NOTICE, "MainWindow::start_stream End");
 }
 
@@ -304,7 +319,9 @@ void MainWindow::setPixmap(QImage qimg, QString input_name)
 		}
 	}
 	view_port_vector[i]->pixmap.setPixmap( QPixmap::fromImage(qimg.rgbSwapped()) );
-	view_port_vector[i]->graphics_view.fitInView(&view_port_vector[0]->pixmap, Qt::KeepAspectRatio);
+	view_port_vector[i]->graphics_view.setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+	view_port_vector[i]->graphics_view.fitInView(&view_port_vector[i]->pixmap, Qt::KeepAspectRatio);
+	//view_port_vector[i]->graphics_view.fitInView(&view_port_vector[0]->pixmap, Qt::KeepAspectRatio);
 	qApp->processEvents();
 }
 

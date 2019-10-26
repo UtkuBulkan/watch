@@ -73,7 +73,6 @@ private:
 
 	void create_view_port(std::string input_name);
 	void delete_view_port();
-
 	QListWidget *list_widget;
 
 	DBConnection *dbconnection;
