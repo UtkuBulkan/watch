@@ -72,7 +72,8 @@ void ObjectDetector_AgeCaffe::post_process(cv::Mat& frame, std::vector<cv::Mat> 
 std::string ObjectDetector_AgeCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
 	(void)detections;
 	syslog(LOG_NOTICE, "ObjectDetector_AgeCaffe::process_frame Begin");
-	std::vector<std::string> ageList = {"(0-2)", "(4-6)", "(8-12)", "(15-20)", "(25-32)", "(38-43)", "(48-53)", "(60-100)"};
+	//std::vector<std::string> ageList = {"(0-2)", "(4-6)", "(8-12)", "(15-20)", "(25-32)", "(38-43)", "(48-53)", "(60-100)"};
+	std::vector<std::string> ageList = {"Child", "Child", "Child", "Teenage", "Adult", "Adult", "Adult", "Senior"};
 
 	cv::Mat blob;
 	cv::dnn::blobFromImage(frame, blob, 1, cv::Size(227, 227), cv::Scalar(78.4263377603, 87.7689143744, 114.895847746), false);

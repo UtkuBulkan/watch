@@ -33,6 +33,7 @@
 
 #include "objectdetection_yolo.h"
 #include "objectdetection_yolotiny.h"
+//#include "objectdetection_haar.h"
 #include "objectdetection_ssdcaffe.h"
 #include "objectdetection_gender_caffe.h"
 #include "objectdetection_age_caffe.h"
@@ -95,8 +96,8 @@ void ObjectDetector::load_network_model_for_detector(std::string network_type)
 	} else if(network_type == "Caffe") {
 		net = cv::dnn::readNetFromCaffe(m_model_config_file, m_model_weights_file);
 	}
-	net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-	net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+	net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+	net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
 	syslog (LOG_NOTICE, "ObjectDetector Network Loaded");
 }
 
