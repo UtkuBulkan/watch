@@ -82,5 +82,7 @@ private:
 	CameraSettingsData m_camera_settings_data;
 
 	void enable_recording_as_output_file();
+	
+	int64_t start_time;
 };
 #endif /* _CAMERA_MANAGER_H_ */

@@ -117,6 +117,7 @@ void Camera::process_frame()
 
 		if(framecount == 0) {
 			m_fps = capture.get(cv::CAP_PROP_FPS);
+			start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 			syslog(LOG_NOTICE, "Frame count : %d", framecount);
 			syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
 		}
@@ -138,7 +139,6 @@ void Camera::process_frame()
 					object_tracker->object_tracker_update_only(frame);
 				}
 			}*/
-			int64_t start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 			if (m_camera_settings_data.face_detection > 0) {
 				std::vector<std::pair<cv::Mat, cv::Point> > detected_faces;
 				m_object_detectors[0]->process_frame(frame, detected_faces);
@@ -179,8 +179,7 @@ void Camera::process_frame()
 			int64_t end_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
 			if(start_time && end_time) {
-				double momenteraly_fps = 1.0 / ((end_time - start_time)/1000000000.0);
-				overall_fps = ((framecount-1) * overall_fps + momenteraly_fps) / (framecount);
+				overall_fps = (framecount) / ((end_time - start_time)/1000000000.0);
 			}
 
 			cv::putText(frame, cv::format("LSBU-F#%d,fps#%2.2lf,video_fps=%d", framecount, overall_fps, (int)m_fps), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
