@@ -92,7 +92,7 @@ std::string ObjectDetector_SsdCaffe::process_frame ( cv::Mat &frame, std::vector
     const double inScaleFactor = 1.0;
     int frameHeight = frame.rows;
     int frameWidth = frame.cols;
-    cv::Mat inputBlob = cv::dnn::blobFromImage ( frame, inScaleFactor, cv::Size ( frameHeight, frameWidth ), meanVal, false, false );
+    cv::Mat inputBlob = cv::dnn::blobFromImage ( frame, inScaleFactor, cv::Size ( 300, 300 ), meanVal, false, false );
 
     get_net().setInput ( inputBlob, "data" );
     cv::Mat detection = get_net().forward ( "detection_out" );

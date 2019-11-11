@@ -44,6 +44,7 @@ Camera::Camera(std::string input_device_name, CameraSettingsData &camera_setting
 		throw "Error opening file.\n";
 	}
 	framecount = 0;
+	catdetector_skip_this_number_of_frames = 1;
 	syslog(LOG_NOTICE, "Camera::Camera End");
 }
 
@@ -123,7 +124,7 @@ void Camera::process_frame()
 		}
 
 		framecount++;
-		if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES != 0) {
+		if (framecount % catdetector_skip_this_number_of_frames != 0) {
 			return; //continue;
 		}
 
@@ -177,12 +178,18 @@ void Camera::process_frame()
 				}
 			}
 			int64_t end_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-			if(start_time && end_time) {
-				overall_fps = (framecount) / ((end_time - start_time)/1000000000.0);
+			double overall_fps = (framecount / ((end_time - start_time)/1000000000.0));
+#ifdef CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES_DYNAMIC
+			if(framecount % ((int)m_fps * 3) == 0) {
+				if(m_fps > overall_fps) {
+					catdetector_skip_this_number_of_frames += (int)m_fps - overall_fps;
+				} else {
+					if (catdetector_skip_this_number_of_frames > (overall_fps - m_fps)) catdetector_skip_this_number_of_frames -= overall_fps - (int)m_fps;
+				}
 			}
+#endif
 
-			cv::putText(frame, cv::format("LSBU-F#%d,fps#%2.2lf,video_fps=%d", framecount, overall_fps, (int)m_fps), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+			cv::putText(frame, cv::format("F#%d,fps#%2.2lf,video_fps=%d, skip:%d", framecount, overall_fps, (int)m_fps,catdetector_skip_this_number_of_frames), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
 			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
 			emit loop_set_pixmap(qimg,  QString::fromStdString(m_input_device_name));
 

@@ -48,8 +48,7 @@
 
 #include <QString>
 
-#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES 1
-//#define CATDETECTOR_ENABLE_OUTPUT_TO_VIDEO_FILE
+//#define CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES_DYNAMIC
 
 class Camera : public QObject
 {
@@ -68,8 +67,9 @@ signals:
 private:
 	cv::Mat frame;
 	int framecount;
-	double overall_fps = 0;
 	double m_fps;
+	int catdetector_skip_this_number_of_frames;
+	int64_t start_time;
 
 	std::string m_input_device_name;
 	std::string m_output_file_path;
@@ -82,7 +82,5 @@ private:
 	CameraSettingsData m_camera_settings_data;
 
 	void enable_recording_as_output_file();
-	
-	int64_t start_time;
 };
 #endif /* _CAMERA_MANAGER_H_ */
