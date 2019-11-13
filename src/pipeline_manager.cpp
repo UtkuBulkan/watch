@@ -2,11 +2,6 @@
 
 PipelineManager::PipelineManager(MainWindow *main_window) : m_main_window(main_window)
 {
-	object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
-	object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
-	object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
-	face_recognitor = new FaceRecognition();
-	//ObjectTracker *object_tracker = new ObjectTracker("KCF");
 }
 
 PipelineManager::~PipelineManager()
@@ -57,6 +52,11 @@ void PipelineManager::add(std::string stream_address, CameraSettingsData &camera
 	}
 	std::unique_lock<std::mutex> lock(m_mutex);
 	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
+	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
+	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
+	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
+	FaceRecognition *face_recognitor = new FaceRecognition();
+
 	Camera *camera = new Camera(stream_address, camera_settings_data);
 	camera->set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
 

@@ -34,11 +34,6 @@ private slots:
 private:
 	std::vector<Camera*> playlist;
 
-	ObjectDetector *object_detector_face;
-	ObjectDetector *object_detector_gender;
-	ObjectDetector *object_detector_age;
-	FaceRecognition *face_recognitor;
-
 	MainWindow *m_main_window;
 
 	std::mutex m_mutex;
