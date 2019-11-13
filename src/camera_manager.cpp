@@ -183,11 +183,11 @@ void Camera::process_frame()
 			if(framecount % ((int)m_fps * 3) == 0) {
 				if(m_fps > overall_fps) {
 					catdetector_skip_this_number_of_frames += (int)m_fps - overall_fps;
-					catdetector_skip_this_number_of_frames = std::min(catdetector_skip_this_number_of_frames, 24);
 				} else {
 					if (catdetector_skip_this_number_of_frames > (int)(overall_fps - m_fps)) catdetector_skip_this_number_of_frames -= overall_fps - (int)m_fps;
-					catdetector_skip_this_number_of_frames = std::max(catdetector_skip_this_number_of_frames, 1);
 				}
+				catdetector_skip_this_number_of_frames = std::min(catdetector_skip_this_number_of_frames, 24);
+				catdetector_skip_this_number_of_frames = std::max(catdetector_skip_this_number_of_frames, 1);
 			}
 #endif
 
