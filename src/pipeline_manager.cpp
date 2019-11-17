@@ -2,6 +2,7 @@
 
 PipelineManager::PipelineManager(MainWindow *main_window) : m_main_window(main_window)
 {
+	face_recognitor = new FaceRecognition();
 }
 
 PipelineManager::~PipelineManager()
@@ -55,7 +56,6 @@ void PipelineManager::add(std::string stream_address, CameraSettingsData &camera
 	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
 	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
 	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
-	FaceRecognition *face_recognitor = new FaceRecognition();
 
 	Camera *camera = new Camera(stream_address, camera_settings_data);
 	camera->set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);

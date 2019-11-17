@@ -38,6 +38,8 @@ private:
 
 	std::mutex m_mutex;
 	int m_event_recieved;
+	
+	FaceRecognition *face_recognitor;
 };
 
 #endif /* _PIPELINE_MANAGER_H */

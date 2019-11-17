@@ -44,7 +44,7 @@ Camera::Camera(std::string input_device_name, CameraSettingsData &camera_setting
 		throw "Error opening file.\n";
 	}
 	framecount = 0;
-	catdetector_skip_this_number_of_frames = 1;
+		catdetector_skip_this_number_of_frames = 1;
 	syslog(LOG_NOTICE, "Camera::Camera End");
 }
 
@@ -73,6 +73,7 @@ void Camera::enable_recording_as_output_file()
 	syslog(LOG_NOTICE, "Input file width: %d", S.width);
 	syslog(LOG_NOTICE, "Input file height: %d", S.height);
 	syslog(LOG_NOTICE, "Device name : %s", m_input_device_name.c_str());
+	syslog(LOG_NOTICE, "Output Device name : %s", m_output_file_path.c_str());
 }
 
 void Camera::display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location)
@@ -123,9 +124,9 @@ void Camera::process_frame()
 			syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
 		}
 
-		framecount++;
-		if (framecount % catdetector_skip_this_number_of_frames != 0) {
-			return; //continue;
+		for(int k = 0; k < catdetector_skip_this_number_of_frames; k++) {
+			capture >> frame;
+			framecount++;
 		}
 
 		{
