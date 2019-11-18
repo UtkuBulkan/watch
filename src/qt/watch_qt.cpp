@@ -1,9 +1,22 @@
 #include <QCoreApplication>
+#include <QStyledItemDelegate>
 #include "watch_qt.h"
 #include "ui_mainwindow.h"
 #include "pipeline_manager.h"
 
 PipelineManager *pipeline_manager;
+
+class StyledItemDelegate: public QStyledItemDelegate
+{
+public:
+	using QStyledItemDelegate::QStyledItemDelegate;
+protected:
+	void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+	{
+		QStyledItemDelegate::initStyleOption(option, index);
+		option->decorationPosition = QStyleOptionViewItem::Top;
+	}
+};
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -11,6 +24,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 	ui->listWidget->setIconSize(QSize(100, 100));
 	ui->listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	ui->listWidget->setViewMode(QListView::IconMode);
+	StyledItemDelegate *delegate = new StyledItemDelegate(ui->listWidget);
+	ui->listWidget->setItemDelegate(delegate);
+	ui->listWidget->setWrapping(true);
+	ui->listWidget->setStyleSheet("QListWidget::item { border: 2px solid black }");
 
 	dbconnection = new DBConnection("localhost", "utku", "utku");
 	generate_camera_table();
@@ -325,16 +343,25 @@ void MainWindow::setPixmap(QImage qimg, QString input_name)
 	qApp->processEvents();
 }
 
-void MainWindow::add_detected_face(QImage detected_face)
+void MainWindow::add_detected_face(QImage detected_face, QString predicted_string)
 {
 	int is_scroll_to_bottom = false;
 	QScrollBar *vertical_scroll_bar = ui->listWidget->verticalScrollBar();
 	if(vertical_scroll_bar->value() == vertical_scroll_bar->maximum()) is_scroll_to_bottom = true;
 
-	QListWidgetItem *item = new QListWidgetItem;
-	item->setIcon(QPixmap::fromImage(detected_face.rgbSwapped()).scaled(80,80, Qt::KeepAspectRatio));
+	QListWidgetItem *item = new QListWidgetItem(QIcon(QPixmap::fromImage(detected_face.rgbSwapped()).scaled(80,80, Qt::KeepAspectRatio)), predicted_string);
+	item->setSizeHint(QSize(80,128));
+	item->setTextAlignment(Qt::AlignCenter);
+
 	ui->listWidget->insertItem(ui->listWidget->count(),item);
 	if(is_scroll_to_bottom) ui->listWidget->scrollToBottom();
+}
+
+void MainWindow::add_newly_detected_face_to_database(int id, int camera_id, int timestamp, QByteArray bytearray, QString auto_assigned, QString user_assigned, int previously_detected)
+{
+	syslog(LOG_NOTICE, "MainWindow::add_newly_detected_face_to_database Start");
+	dbconnection->add_face(id, camera_id, timestamp, reinterpret_cast<unsigned char*>(bytearray.data()), bytearray.size(), auto_assigned.toStdString(), user_assigned.toStdString(), previously_detected);
+	syslog(LOG_NOTICE, "MainWindow::add_newly_detected_face_to_database End");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

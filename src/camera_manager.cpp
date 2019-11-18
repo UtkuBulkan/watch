@@ -1,4 +1,4 @@
-    /*
+/*
  * Copyright 2019 SU Technology Ltd. All rights reserved.
  *
  * MIT License
@@ -31,6 +31,7 @@
 #include <chrono>
 #include <syslog.h>
 #include "camera_manager.h"
+#include "mat_serialize_helper.h"
 
 Camera::Camera(std::string input_device_name, CameraSettingsData &camera_settings_data)
 {
@@ -44,7 +45,7 @@ Camera::Camera(std::string input_device_name, CameraSettingsData &camera_setting
 		throw "Error opening file.\n";
 	}
 	framecount = 0;
-		catdetector_skip_this_number_of_frames = 1;
+	catdetector_skip_this_number_of_frames = 1;
 	syslog(LOG_NOTICE, "Camera::Camera End");
 }
 
@@ -110,13 +111,6 @@ void Camera::process_frame()
 	syslog(LOG_NOTICE, "Camera::loop Begin");
 
 	{
-		capture >> frame;
-
-		if (frame.empty()) {
-			syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
-			return; //break;
-		}
-
 		if(framecount == 0) {
 			m_fps = capture.get(cv::CAP_PROP_FPS);
 			start_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -127,7 +121,13 @@ void Camera::process_frame()
 		for(int k = 0; k < catdetector_skip_this_number_of_frames; k++) {
 			capture >> frame;
 			framecount++;
+			if (frame.empty()) {
+				syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
+				return; //break;
+			}
 		}
+
+		/*if (framecount catdetector_skip_this_number_of_frames )*/
 
 		{
 			/*if (framecount % CATDETECTOR_SKIP_THIS_NUMBER_OF_FRAMES == 0) {
@@ -170,10 +170,12 @@ void Camera::process_frame()
 						m_face_recognitor->display_statistics(detected_faces[i].first, predicted_string);
 
 						if(!previously_detected) {
-							QImage qimage_detected_face(detected_faces[i].first.data, detected_faces[i].first.cols, detected_faces[i].first.rows,
-									detected_faces[i].first.step, QImage::Format_RGB888);
-							emit loop_add_detected_face(qimage_detected_face);
+							QImage qimage_detected_face(detected_faces[i].first.data, detected_faces[i].first.cols, detected_faces[i].first.rows, detected_faces[i].first.step, QImage::Format_RGB888);
+							emit loop_add_detected_face(qimage_detected_face, QString::fromStdString(predicted_string));
 						}
+
+						//QByteArray bytearray = mat2ByteArray(detected_faces[i].first);
+						//emit loop_add_newly_detected_face_to_database(0, 0, (int)time(NULL), bytearray, //QString::fromStdString(predicted_string), QString::fromStdString(predicted_string), (int)previously_detected);
 					}
 					display_statistics(frame, predicted_string, gender, age, label_location);
 				}
@@ -191,10 +193,9 @@ void Camera::process_frame()
 				catdetector_skip_this_number_of_frames = std::max(catdetector_skip_this_number_of_frames, 1);
 			}
 #endif
-
 			cv::putText(frame, cv::format("F#%d,fps#%2.2lf,video_fps=%d, skip:%d", framecount, overall_fps, (int)m_fps,catdetector_skip_this_number_of_frames), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
 			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-			emit loop_set_pixmap(qimg,  QString::fromStdString(m_input_device_name));
+			emit loop_set_pixmap(qimg, QString::fromStdString(m_input_device_name));
 
 			if (m_camera_settings_data.record_detections_as_output_file > 0) {
 				if(m_output_file_path.empty()) {

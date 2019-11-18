@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
-
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,3 +24,10 @@
  * SOFTWARE.
  *
  */
+
+#include <QByteArray>
+#include <QDataStream>
+#include <opencv2/opencv.hpp>
+
+QByteArray mat2ByteArray(const cv::Mat &image);
+cv::Mat byteArray2Mat(const QByteArray & byteArray);

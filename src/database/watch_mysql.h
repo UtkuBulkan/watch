@@ -35,6 +35,8 @@ public:
 	void get_camera_list(std::vector<camera_list_item_t> &camera_list);
 	bool check_camera_exists(std::string camera_address);
 
+	void add_face(int id, int camera_id, int timestamp, unsigned char *image, unsigned int image_size, std::string auto_assigned, std::string user_assigned, int previously_detected);
+
 protected:
 	std::string m_server; //eg: 192.168.1.1 or localhost:3306
 	std::string m_user;

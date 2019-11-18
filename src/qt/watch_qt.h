@@ -21,6 +21,8 @@
 #include <QString>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QByteArray>
+#include <QDataStream>
 #include "database/watch_mysql.h"
 
 #include "opencv2/opencv.hpp"
@@ -48,8 +50,8 @@ public:
 
 public slots:
 	void setPixmap(QImage qimg, QString input_name);
-	void add_detected_face(QImage detected_face);
-
+	void add_detected_face(QImage detected_face, QString predicted_string);
+	void add_newly_detected_face_to_database(int id, int camera_id, int timestamp, QByteArray bytearray, QString auto_assigned, QString user_assigned, int previously_detected);
 protected:
 	void closeEvent(QCloseEvent *event);
 private slots:

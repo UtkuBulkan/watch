@@ -32,7 +32,7 @@ FaceRecognition::FaceRecognition()
 	syslog(LOG_NOTICE, "FaceRecognition::FaceRecognition Begin");
 	model = cv::face::LBPHFaceRecognizer::create();
 	//model = cv::face::FisherFaceRecognizer::create();
-	last_detected_id = 0;
+	last_detected_id = 5;
 	face_recognition_model_database  = "./SVNDATABASE.cvs";
 	face_image_list_csv = "../data/images/list.csv";
 	load_face_recognition_model();
@@ -133,9 +133,10 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
 	syslog(LOG_NOTICE, "Prediction : %d, Predicted string : %s, confidence : %lf", predicted_label_id, predicted_string.c_str(), confidence);
 
 	if(confidence > 100.0) {
-		predicted_string = cv::format("ID #%d", train_new_sample(detected_face));
+		predicted_string = cv::format("%d", train_new_sample(detected_face, -1));
 		previously_detected = false;
 	} else {
+		train_new_sample(detected_face, predicted_label_id);
 		previously_detected = true;
 	}
 
@@ -154,22 +155,27 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
 	return predicted_string;
 }
 
-int FaceRecognition::train_new_sample(cv::Mat &detected_face)
+int FaceRecognition::train_new_sample(cv::Mat &detected_face, int predicted_id)
 {
 	syslog(LOG_NOTICE, "FaceRecognition::train_new_sample Begin");
-	int current_id = last_detected_id;
+	int current_id;
+	if (predicted_id == -1) {
+		current_id = last_detected_id;
+		last_detected_id++;
+	} else {
+		current_id = predicted_id;
+	}
 	std::vector<int> vec_id;
 	vec_id.push_back(current_id);
 	std::vector<cv::Mat> vec_image;
 	vec_image.push_back(detected_face);
 	model->update(vec_image, vec_id);
 	std::ostringstream current_id_string_stream;
-	current_id_string_stream << "ID #" << std::to_string(current_id);
+	current_id_string_stream << std::to_string(current_id);
 	std::string current_id_string = current_id_string_stream.str();
 	model->setLabelInfo(current_id, current_id_string);
-	last_detected_id++;
 	//model->write(face_recognition_model_database);
 	syslog(LOG_NOTICE, "FaceRecognition::train_new_sample End");
-	return last_detected_id;
+	return current_id;
 }
 

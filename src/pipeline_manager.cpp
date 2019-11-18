@@ -61,7 +61,9 @@ void PipelineManager::add(std::string stream_address, CameraSettingsData &camera
 	camera->set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
 
 	connect(camera, SIGNAL(loop_set_pixmap(QImage, QString)), m_main_window, SLOT(setPixmap(QImage, QString)));
-	connect(camera, SIGNAL(loop_add_detected_face(QImage)), m_main_window, SLOT(add_detected_face(QImage)));
+	connect(camera, SIGNAL(loop_add_detected_face(QImage, QString)), m_main_window, SLOT(add_detected_face(QImage, QString)));
+
+	connect(camera, SIGNAL(loop_add_newly_detected_face_to_database(int, int, int, QByteArray, QString, QString, int)), m_main_window, SLOT(add_newly_detected_face_to_database(int, int, int, QByteArray, QString, QString, int)));
 
 	if((int)playlist.size() == 0) {
 		QThread *thread = new QThread;

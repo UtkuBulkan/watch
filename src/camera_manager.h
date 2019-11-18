@@ -63,7 +63,8 @@ public:
 
 signals:
 	void loop_set_pixmap(QImage qimg, QString input_name);
-	void loop_add_detected_face(QImage qimg);
+	void loop_add_detected_face(QImage qimg, QString predicted_string);
+	void loop_add_newly_detected_face_to_database(int id, int camera_id, int timestamp, QByteArray bytearray, QString auto_assigned, QString user_assigned, int previously_detected);
 private:
 	cv::Mat frame;
 	int framecount;

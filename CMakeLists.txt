@@ -17,7 +17,8 @@ set(SOURCES src/watch.cpp src/camera_manager.cpp src/objectdetection.cpp
 			src/objecttracker.cpp src/objectdetection_yolo.cpp src/objectdetection_yolotiny.cpp
 			src/objectdetection_ssdcaffe.cpp src/objectdetection_gender_caffe.cpp src/objectdetection_age_caffe.cpp
 			src/facerecognition.cpp src/qt/watch_qt_main.cpp src/qt/watch_qt.cpp src/qt/watch_dialog_qt.cpp 
-			src/pipeline_manager.cpp src/database/watch_mysql.cpp)
+			src/pipeline_manager.cpp src/database/watch_mysql.cpp
+			src/mat_serialize_helper.cpp)
 
 find_package(OpenCV)
 find_package(Qt5Core)

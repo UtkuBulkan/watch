@@ -1,4 +1,5 @@
 #include "watch_mysql.h"
+#include <sstream>
 #include <exception>
 #include <syslog.h>
 
@@ -33,7 +34,7 @@ void DBConnection::preparetables()
 		statement->execute("CREATE TABLE IF NOT EXISTS recorded_files(id INT, address VARCHAR(200), record_timestamp VARCHAR(50))");
 		delete statement;
 		statement = con->createStatement();
-		statement->execute("CREATE TABLE IF NOT EXISTS detected_faces(id INT, auto_assigned_label VARCHAR(100), user_assigned_label VARCHAR(100))");
+		statement->execute("CREATE TABLE IF NOT EXISTS detected_faces(id INT, camera_id INT, timestamp INT, MEDIUMBLOB image, auto_assigned_label VARCHAR(100), user_assigned_label VARCHAR(100))");
 		delete statement;
 	} catch (std::exception &e) {
 		syslog(LOG_NOTICE, "Failed to create tables for watch database.");
@@ -118,6 +119,28 @@ bool DBConnection::check_camera_exists(std::string camera_address)
 			return true;
 	}
 	return false;
+}
+
+void DBConnection::add_face(int id, int camera_id, int timestamp, unsigned char *image, unsigned image_size, std::string auto_assigned, std::string user_assigned, int previously_detected)
+{
+	try {
+		prepare_statement = con->prepareStatement("INSERT INTO detected_faces (id, camera_id, timestamp, image, auto_assigned_label, user_assigned_label) VALUES (?, ?, ?, ?, ?, ?)");
+		prepare_statement->setInt(1, id);
+		prepare_statement->setInt(2, camera_id);
+		prepare_statement->setInt(3, timestamp);
+
+		std::stringstream xReadWrite;
+		xReadWrite.write((const char*)image, image_size);
+		std::istream *istr = &xReadWrite;
+		prepare_statement->setBlob(4, istr);
+
+		prepare_statement->setString(5, auto_assigned.c_str());
+		prepare_statement->setString(6, user_assigned.c_str());
+		prepare_statement->executeUpdate();
+		delete prepare_statement;
+	} catch (std::exception &e) {
+		syslog(LOG_NOTICE, "Failed to add a new camera information into database.");
+	}
 }
 
 DBConnection::~DBConnection()
