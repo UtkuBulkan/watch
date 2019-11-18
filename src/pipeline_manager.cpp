@@ -34,6 +34,9 @@ void PipelineManager::loop()
 				loop_state = 1;
 			} else if(m_event_recieved == PIPELINE_SIGNAL_STOP) {
 				loop_state = 0;
+				if((int)playlist.size() == 0) {
+					loop_state = 0;
+				}
 			}
 			m_event_recieved = PIPELINE_SIGNAL_NO_EVENT;
 			lock.unlock();
@@ -84,10 +87,9 @@ void PipelineManager::remove(std::string &stream_address)
 	for(int i = 0; i<(int)playlist.size(); i++) {
 		if (playlist[i]->get_input_device_name() == stream_address) {
 			playlist.erase(playlist.begin() + i);
-			if(playlist.size() == 0) event_listener(PIPELINE_SIGNAL_STOP);
-			return;
 		}
 	}
+	if(playlist.size() == 0) event_listener(PIPELINE_SIGNAL_STOP);
 	lock.unlock();
 	syslog(LOG_NOTICE, "PipelineManager::remove End");
 }
