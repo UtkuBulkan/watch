@@ -90,8 +90,8 @@ void Camera::display_statistics(cv::Mat &frame, std::string id, std::string gend
 	}
 	if (m_camera_settings_data.age_prediction > 0) {
 		cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
-		syslog(LOG_NOTICE, "Camera::display_statistics End");
 	}
+	syslog(LOG_NOTICE, "Camera::display_statistics End");
 }
 
 void Camera::set_models(std::vector<ObjectDetector*> object_detectors, ObjectTracker *object_tracker, FaceRecognition *face_recognitor)
@@ -151,13 +151,13 @@ void Camera::process_frame()
 
 				for(size_t i = 0; i < detected_faces.size(); i++) {
 					std::vector<std::pair<cv::Mat, cv::Point> > dummy;
-
 					if (m_camera_settings_data.gender_prediction > 0) {
 						gender = m_object_detectors[1]->process_frame(detected_faces[i].first, dummy);
 					}
 					if (m_camera_settings_data.age_prediction > 0) {
 						age = m_object_detectors[2]->process_frame(detected_faces[i].first, dummy);
 					}
+
 					cv::Point label_location = detected_faces[i].second;
 
 					cv::Mat grayscale;
@@ -167,7 +167,6 @@ void Camera::process_frame()
 					if (m_camera_settings_data.face_recognition > 0) {
 						bool previously_detected;
 						predicted_string = m_face_recognitor->predict_new_sample(grayscale, previously_detected);
-						m_face_recognitor->display_statistics(detected_faces[i].first, predicted_string);
 
 						if(!previously_detected) {
 							QImage qimage_detected_face(detected_faces[i].first.data, detected_faces[i].first.cols, detected_faces[i].first.rows, detected_faces[i].first.step, QImage::Format_RGB888);
@@ -175,7 +174,7 @@ void Camera::process_frame()
 						}
 
 						//QByteArray bytearray = mat2ByteArray(detected_faces[i].first);
-						//emit loop_add_newly_detected_face_to_database(0, 0, (int)time(NULL), bytearray, //QString::fromStdString(predicted_string), QString::fromStdString(predicted_string), (int)previously_detected);
+						//emit loop_add_newly_detected_face_to_database(0, 0, (int)time(NULL), bytearray, QString::fromStdString(predicted_string), QString::fromStdString(predicted_string), (int)previously_detected);
 					}
 					display_statistics(frame, predicted_string, gender, age, label_location);
 				}
@@ -193,7 +192,7 @@ void Camera::process_frame()
 				catdetector_skip_this_number_of_frames = std::max(catdetector_skip_this_number_of_frames, 1);
 			}
 #endif
-			cv::putText(frame, cv::format("F#%d,fps#%2.2lf,video_fps=%d, skip:%d", framecount, overall_fps, (int)m_fps,catdetector_skip_this_number_of_frames), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+			//cv::putText(frame, cv::format("F#%d,fps#%2.2lf,video_fps=%d, skip:%d", framecount, overall_fps, (int)m_fps,catdetector_skip_this_number_of_frames), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
 			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
 			emit loop_set_pixmap(qimg, QString::fromStdString(m_input_device_name));
 
