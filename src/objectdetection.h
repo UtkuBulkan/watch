@@ -49,12 +49,12 @@ public:
 	float get_nms_threshold();
 	cv::dnn::Net get_net();
 
-	virtual std::string process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) = 0;
+	virtual std::string process_frame(cv::Mat &frame, cv::Mat &output_frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) = 0;
 protected :
 	ObjectDetector();
 	~ObjectDetector();
-	virtual void post_process(cv::Mat& frame, std::vector<cv::Mat> detection) = 0;
-	virtual void draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame) = 0;
+	virtual void post_process(cv::Mat& frame, cv::Mat &output_frame, std::vector<cv::Mat> detection) = 0;
+	virtual void draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& output_frame) = 0;
 
 private:
 	std::vector < std::string > classes;

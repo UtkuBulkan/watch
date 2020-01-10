@@ -77,19 +77,19 @@ void Camera::enable_recording_as_output_file()
 	syslog(LOG_NOTICE, "Output Device name : %s", m_output_file_path.c_str());
 }
 
-void Camera::display_statistics(cv::Mat &frame, std::string id, std::string gender, std::string age, cv::Point label_location)
+void Camera::display_statistics(cv::Mat &output_frame, std::string id, std::string gender, std::string age, cv::Point label_location)
 {
 	syslog(LOG_NOTICE, "Camera::display_statistics Begin");
 	if (m_camera_settings_data.face_recognition > 0) {
-		cv::putText(frame, cv::format("%s", id.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+		cv::putText(output_frame, cv::format("%s", id.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 		label_location.y += 25;
 	}
 	if (m_camera_settings_data.gender_prediction > 0) {
-		cv::putText(frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+		cv::putText(output_frame, cv::format("%s", gender.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 		label_location.y += 25;
 	}
 	if (m_camera_settings_data.age_prediction > 0) {
-		cv::putText(frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+		cv::putText(output_frame, cv::format("%s", age.c_str()), label_location, cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 	}
 	syslog(LOG_NOTICE, "Camera::display_statistics End");
 }
@@ -120,6 +120,7 @@ void Camera::process_frame()
 
 		for(int k = 0; k < catdetector_skip_this_number_of_frames; k++) {
 			capture >> frame;
+			frame.copyTo(output_frame);
 			framecount++;
 			if (frame.empty()) {
 				syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
@@ -141,9 +142,14 @@ void Camera::process_frame()
 					object_tracker->object_tracker_update_only(frame);
 				}
 			}*/
+			if (m_camera_settings_data.object_detection > 0) {
+				std::vector<std::pair<cv::Mat, cv::Point> > detected_objects;
+				m_object_detectors[3]->process_frame(frame, output_frame, detected_objects);
+			}
+
 			if (m_camera_settings_data.face_detection > 0) {
 				std::vector<std::pair<cv::Mat, cv::Point> > detected_faces;
-				m_object_detectors[0]->process_frame(frame, detected_faces);
+				m_object_detectors[0]->process_frame(frame, output_frame, detected_faces);
 
 				std::string gender;
 				std::string age;
@@ -151,14 +157,13 @@ void Camera::process_frame()
 
 				for(size_t i = 0; i < detected_faces.size(); i++) {
 					std::vector<std::pair<cv::Mat, cv::Point> > dummy;
+					cv::Mat dummy_mat;
 					if (m_camera_settings_data.gender_prediction > 0) {
-						gender = m_object_detectors[1]->process_frame(detected_faces[i].first, dummy);
+						gender = m_object_detectors[1]->process_frame(detected_faces[i].first, dummy_mat, dummy);
 					}
 					if (m_camera_settings_data.age_prediction > 0) {
-						age = m_object_detectors[2]->process_frame(detected_faces[i].first, dummy);
+						age = m_object_detectors[2]->process_frame(detected_faces[i].first, dummy_mat, dummy);
 					}
-
-					cv::Point label_location = detected_faces[i].second;
 
 					cv::Mat grayscale;
 					cv::cvtColor(detected_faces[i].first, grayscale, CV_RGB2GRAY);
@@ -176,7 +181,8 @@ void Camera::process_frame()
 						//QByteArray bytearray = mat2ByteArray(detected_faces[i].first);
 						//emit loop_add_newly_detected_face_to_database(0, 0, (int)time(NULL), bytearray, QString::fromStdString(predicted_string), QString::fromStdString(predicted_string), (int)previously_detected);
 					}
-					display_statistics(frame, predicted_string, gender, age, label_location);
+					cv::Point label_location = detected_faces[i].second;
+					display_statistics(output_frame, predicted_string, gender, age, label_location);
 				}
 			}
 			int64_t end_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -192,15 +198,15 @@ void Camera::process_frame()
 				catdetector_skip_this_number_of_frames = std::max(catdetector_skip_this_number_of_frames, 1);
 			}
 #endif
-			//cv::putText(frame, cv::format("F#%d,fps#%2.2lf,video_fps=%d, skip:%d", framecount, overall_fps, (int)m_fps,catdetector_skip_this_number_of_frames), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
-			QImage qimg(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+			//cv::putText(output_frame, cv::format("F#%d,fps#%2.2lf,video_fps=%d, skip:%d", framecount, overall_fps, (int)m_fps,catdetector_skip_this_number_of_frames), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+			QImage qimg(output_frame.data, output_frame.cols, output_frame.rows, output_frame.step, QImage::Format_RGB888);
 			emit loop_set_pixmap(qimg, QString::fromStdString(m_input_device_name));
 
 			if (m_camera_settings_data.record_detections_as_output_file > 0) {
 				if(m_output_file_path.empty()) {
 					enable_recording_as_output_file();
 				}
-				outputVideo << frame;
+				outputVideo << output_frame;
 			}
 		}
 	}

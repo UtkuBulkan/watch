@@ -51,7 +51,7 @@ ObjectDetector_SsdCaffe::ObjectDetector_SsdCaffe()
 ObjectDetector_SsdCaffe::~ObjectDetector_SsdCaffe() {
 }
 
-void ObjectDetector_SsdCaffe::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat& frame)
+void ObjectDetector_SsdCaffe::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat &output_frame)
 {
 	(void)classId;
 	(void)confidence;
@@ -59,14 +59,15 @@ void ObjectDetector_SsdCaffe::draw_prediction_indicators(int classId, float conf
 	(void)top;
 	(void)right;
 	(void)bottom;
-	(void)frame;
+	(void)output_frame;
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::draw_box Begin");
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::draw_box End");
 }
 
-void ObjectDetector_SsdCaffe::post_process(cv::Mat& frame, std::vector<cv::Mat> detection)
+void ObjectDetector_SsdCaffe::post_process(cv::Mat& frame, cv::Mat &output_frame, std::vector<cv::Mat> detection)
 {
 	(void)frame;
+	(void)output_frame;
 	(void)detection;
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::post_process Begin");
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::post_process End");
@@ -79,7 +80,7 @@ long long current_timestamp() {
 	return miliseconds;
 }
 
-std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
+std::string ObjectDetector_SsdCaffe::process_frame(cv::Mat &frame, cv::Mat &output_frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
 	syslog(LOG_NOTICE, "ObjectDetector_SsdCaffe::process_frame Begin");
 
     //long long time_start = current_timestamp();

@@ -55,9 +55,9 @@ public:
 	ObjectDetector_SsdCaffe();
 	~ObjectDetector_SsdCaffe();
 private:
-	std::string process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections);
+	std::string process_frame(cv::Mat &frame, cv::Mat &output_frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections);
 	void post_process(cv::Mat& frame, std::vector<cv::Mat> detection);
-	void draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+	void draw_prediction_indicators(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& output_frame);
     
     Ptr<cv::cuda::HOG> gpu_hog;
 };

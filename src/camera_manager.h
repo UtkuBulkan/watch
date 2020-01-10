@@ -66,7 +66,7 @@ signals:
 	void loop_add_detected_face(QImage qimg, QString predicted_string);
 	void loop_add_newly_detected_face_to_database(int id, int camera_id, int timestamp, QByteArray bytearray, QString auto_assigned, QString user_assigned, int previously_detected);
 private:
-	cv::Mat frame;
+	cv::Mat frame, output_frame;
 	int framecount;
 	double m_fps;
 	int catdetector_skip_this_number_of_frames;

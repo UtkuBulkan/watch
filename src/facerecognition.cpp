@@ -136,7 +136,7 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
 		predicted_string = cv::format("%d", train_new_sample(detected_face, -1));
 		previously_detected = false;
 	} else {
-		train_new_sample(detected_face, predicted_label_id);
+		//train_new_sample(detected_face, predicted_label_id);
 		previously_detected = true;
 	}
 

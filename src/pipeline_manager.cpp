@@ -56,12 +56,13 @@ void PipelineManager::add(std::string stream_address, CameraSettingsData &camera
 	}
 	std::unique_lock<std::mutex> lock(m_mutex);
 	//Camera camera("rtsp://ubnt:ubnt@192.168.1.118:554/s1");
+	ObjectDetector *object_detector_yolo = ObjectDetector::GenerateDetector("Yolo");
 	ObjectDetector *object_detector_face = ObjectDetector::GenerateDetector("SsdCaffe");
 	ObjectDetector *object_detector_gender = ObjectDetector::GenerateDetector("GenderCaffe");
 	ObjectDetector *object_detector_age = ObjectDetector::GenerateDetector("AgeCaffe");
 
 	Camera *camera = new Camera(stream_address, camera_settings_data);
-	camera->set_models({object_detector_face, object_detector_gender, object_detector_age}, NULL, face_recognitor);
+	camera->set_models({object_detector_face, object_detector_gender, object_detector_age, object_detector_yolo}, NULL, face_recognitor);
 
 	connect(camera, SIGNAL(loop_set_pixmap(QImage, QString)), m_main_window, SLOT(setPixmap(QImage, QString)));
 	connect(camera, SIGNAL(loop_add_detected_face(QImage, QString)), m_main_window, SLOT(add_detected_face(QImage, QString)));

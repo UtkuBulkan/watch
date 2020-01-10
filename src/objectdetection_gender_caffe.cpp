@@ -48,7 +48,7 @@ ObjectDetector_GenderCaffe::ObjectDetector_GenderCaffe()
 ObjectDetector_GenderCaffe::~ObjectDetector_GenderCaffe() {
 }
 
-void ObjectDetector_GenderCaffe::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat& frame)
+void ObjectDetector_GenderCaffe::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat &output_frame)
 {
 	(void)classId;
 	(void)confidence;
@@ -56,21 +56,23 @@ void ObjectDetector_GenderCaffe::draw_prediction_indicators(int classId, float c
 	(void)top;
 	(void)right;
 	(void)bottom;
-	(void)frame;
+	(void)output_frame;
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::draw_box Begin");
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::draw_box End");
 }
 
-void ObjectDetector_GenderCaffe::post_process(cv::Mat& frame, std::vector<cv::Mat> detection)
+void ObjectDetector_GenderCaffe::post_process(cv::Mat& frame, cv::Mat &output_frame, std::vector<cv::Mat> detection)
 {
 	(void)frame;
+	(void)output_frame;
 	(void)detection;
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::post_process Begin");
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::post_process End");
 }
 
-std::string ObjectDetector_GenderCaffe::process_frame(cv::Mat &frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
+std::string ObjectDetector_GenderCaffe::process_frame(cv::Mat &frame, cv::Mat &output_frame, std::vector<std::pair<cv::Mat, cv::Point> > &detections) {
 	(void)detections;
+	(void)output_frame;
 	syslog(LOG_NOTICE, "ObjectDetector_GenderCaffe::process_frame Begin");
 	std::vector<std::string> genderList = {"Male", "Female"};
 
