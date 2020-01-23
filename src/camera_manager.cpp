@@ -117,6 +117,10 @@ void Camera::process_frame()
 			syslog(LOG_NOTICE, "Frame count : %d", framecount);
 			syslog(LOG_DEBUG, "Frame resolution : %d x %d", frame.rows, frame.cols);
 		}
+		
+		if (m_camera_settings_data.skip_frames > 0) {
+            catdetector_skip_this_number_of_frames = 24;
+        }
 
 		for(int k = 0; k < catdetector_skip_this_number_of_frames; k++) {
 			capture >> frame;
@@ -124,7 +128,11 @@ void Camera::process_frame()
 			framecount++;
 			if (frame.empty()) {
 				syslog(LOG_NOTICE, "Last read frame is empty, quitting.");
-				return; //break;
+				if (m_camera_settings_data.loop_video > 0) {
+                    capture.release();
+                    capture.open(m_input_device_name);
+                }
+                return; //break;
 			}
 		}
 

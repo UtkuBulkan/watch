@@ -23,6 +23,8 @@ struct camera_list_item_t
 	bool age_prediction;
 	bool heat_map_estimation;
 	bool record_detections_as_output_file;
+    bool loop_video;
+	bool skip_frames;
 };
 
 class DBConnection

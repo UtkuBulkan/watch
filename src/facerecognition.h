@@ -30,6 +30,7 @@
 #include "opencv2/face.hpp"
 #include "opencv2/highgui.hpp"
 #include <fstream>
+#include <map>
 
 class FaceRecognition
 {
@@ -49,4 +50,6 @@ private:
 	void read_csv(const std::string& filename, std::vector<cv::Mat>& images, std::vector<int>& labels, char separator);
 
 	int last_detected_id;
+    
+    std::map<std::string, int> trained_face_count;
 };

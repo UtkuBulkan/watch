@@ -127,8 +127,13 @@ void MainWindow::on_push_button_for_settings_clicked()
 	camera_settings_data.age_prediction = camera_settings_window->get_checkbox_state(CHECKBOX_AGE_PREDICTION);
 	camera_settings_data.heat_map_estimation = camera_settings_window->get_checkbox_state(CHECKBOX_HEAT_MAP_ESTIMATION);
 	camera_settings_data.record_detections_as_output_file = camera_settings_window->get_checkbox_state(CHECKBOX_RECORD_DETECTIONS_AS_OUTPUT_FILE);
+    
+    camera_settings_data.loop_video = camera_settings_window->get_checkbox_state(CHECKBOX_LOOP_VIDEO);
+    camera_settings_data.skip_frames = camera_settings_window->get_checkbox_state(CHECKBOX_SKIP_FRAMES);
+
 	dbconnection->update_camera(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
-	update_camera_list_item(camera_settings_window->get_dialog_current_address(), camera_settings_data);
+    
+    update_camera_list_item(camera_settings_window->get_dialog_current_address(), camera_settings_data);
 	syslog(LOG_NOTICE, "MainWindow::on_push_button_for_start_camera_stream End");
 }
 
@@ -152,7 +157,11 @@ void MainWindow::on_push_button_for_start_camera_stream()
 	camera_settings_data.age_prediction = camera_settings_window->get_checkbox_state(CHECKBOX_AGE_PREDICTION);
 	camera_settings_data.heat_map_estimation = camera_settings_window->get_checkbox_state(CHECKBOX_HEAT_MAP_ESTIMATION);
 	camera_settings_data.record_detections_as_output_file = camera_settings_window->get_checkbox_state(CHECKBOX_RECORD_DETECTIONS_AS_OUTPUT_FILE);
-	dbconnection->update_camera(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
+
+    camera_settings_data.loop_video = camera_settings_window->get_checkbox_state(CHECKBOX_LOOP_VIDEO);
+    camera_settings_data.skip_frames = camera_settings_window->get_checkbox_state(CHECKBOX_SKIP_FRAMES);
+    
+    dbconnection->update_camera(camera_settings_window->get_dialog_current_address().toStdString(), camera_settings_data);
 	update_camera_list_item(camera_settings_window->get_dialog_current_address(), camera_settings_data);
 
 	if(camera_settings_data.active > 0) {
@@ -180,6 +189,9 @@ void MainWindow::onTreeWidgetDoubleClicked(QTreeWidgetItem *item, int column)
 	camera_settings_data.age_prediction = item->text(8).toStdString() == "Yes" ? 1 : 0;
 	camera_settings_data.heat_map_estimation = item->text(9).toStdString() == "Yes" ? 1 : 0;
 	camera_settings_data.record_detections_as_output_file = item->text(10).toStdString() == "Yes" ? 1 : 0;
+
+    camera_settings_data.loop_video = item->text(9).toStdString() == "Yes" ? 1 : 0;
+	camera_settings_data.skip_frames = item->text(10).toStdString() == "Yes" ? 1 : 0;
 
 	camera_settings_window = new CameraSettingsWindow(item->text(1), camera_settings_data);
 	connect(camera_settings_window,
@@ -209,6 +221,8 @@ void MainWindow::add_camera_list_item(QString id, QString address, CameraSetting
 	treeItem->setText(8, camera_settings_data.age_prediction > 0 ? "Yes" : "No");
 	treeItem->setText(9, camera_settings_data.heat_map_estimation > 0 ? "Yes" : "No");
 	treeItem->setText(10, camera_settings_data.record_detections_as_output_file > 0 ? "Yes" : "No");
+    treeItem->setText(11, camera_settings_data.loop_video > 0 ? "Yes" : "No");
+	treeItem->setText(12, camera_settings_data.skip_frames > 0 ? "Yes" : "No");
 }
 
 void MainWindow::update_camera_list_item(QString address, CameraSettingsData &camera_settings_data)
@@ -229,6 +243,8 @@ void MainWindow::update_camera_list_item(QString address, CameraSettingsData &ca
 			treeItem->setText(8, camera_settings_data.age_prediction > 0 ? "Yes" : "No");
 			treeItem->setText(9, camera_settings_data.heat_map_estimation > 0 ? "Yes" : "No");
 			treeItem->setText(10, camera_settings_data.record_detections_as_output_file > 0 ? "Yes" : "No");
+            treeItem->setText(11, camera_settings_data.loop_video > 0 ? "Yes" : "No");
+			treeItem->setText(10, camera_settings_data.skip_frames > 0 ? "Yes" : "No");
 			return;
 		}
 	}
@@ -266,6 +282,9 @@ void MainWindow::generate_camera_table()
 		camera_settings_data.age_prediction = camera_list[i].age_prediction;
 		camera_settings_data.heat_map_estimation = camera_list[i].heat_map_estimation;
 		camera_settings_data.record_detections_as_output_file = camera_list[i].record_detections_as_output_file;
+        camera_settings_data.loop_video = camera_list[i].loop_video;
+		camera_settings_data.skip_frames = camera_list[i].skip_frames;
+
 
 		add_camera_list_item(QString::fromStdString(std::to_string(camera_list[i].id)),
 				QString::fromStdString(camera_list[i].address),
@@ -296,6 +315,9 @@ void MainWindow::on_startBtn_pressed()
 		camera_settings_data.age_prediction = Qt::Checked;
 		camera_settings_data.heat_map_estimation = Qt::Unchecked;
 		camera_settings_data.record_detections_as_output_file = Qt::Unchecked;
+        camera_settings_data.loop_video = Qt::Unchecked;
+		camera_settings_data.skip_frames = Qt::Unchecked;
+
 		add_camera_list_item(QString("0"), QString::fromStdString(stream_address), camera_settings_data);
 		dbconnection->add_camera(stream_address, camera_settings_data);
 	}

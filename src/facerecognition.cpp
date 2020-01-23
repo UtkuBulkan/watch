@@ -132,11 +132,21 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
 	std::string predicted_string = model->getLabelInfo(predicted_label_id);
 	syslog(LOG_NOTICE, "Prediction : %d, Predicted string : %s, confidence : %lf", predicted_label_id, predicted_string.c_str(), confidence);
 
-	if(confidence > 100.0) {
+	if(confidence > 110.0) {
 		predicted_string = cv::format("%d", train_new_sample(detected_face, -1));
 		previously_detected = false;
 	} else {
-		//train_new_sample(detected_face, predicted_label_id);
+        if (trained_face_count.find(predicted_string) != trained_face_count.end()) {
+            if (trained_face_count[predicted_string] < 50)  {
+                trained_face_count[predicted_string] += 1;
+                train_new_sample(detected_face, predicted_label_id);
+            }
+        } else {
+            trained_face_count[predicted_string] = 1;
+        }
+        for(std::map <std::string, int>::iterator it=trained_face_count.begin(); it!=trained_face_count.end();it++) {
+            syslog(LOG_NOTICE, "Face Index : %s - Count : %d", it->first.c_str(), it->second);
+        }
 		previously_detected = true;
 	}
 

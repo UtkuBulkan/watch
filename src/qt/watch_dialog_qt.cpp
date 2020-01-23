@@ -12,6 +12,9 @@ CameraSettingsWindow::CameraSettingsWindow(QString camera_label, CameraSettingsD
 	checkbox_list.push_back(new QCheckBox("Age Prediction"));
 	checkbox_list.push_back(new QCheckBox("Heat-Map Estimation"));
 	checkbox_list.push_back(new QCheckBox("Record detections as output file"));
+	checkbox_list.push_back(new QCheckBox("Loop Video"));
+	checkbox_list.push_back(new QCheckBox("Skip frames"));
+    
 	apply_button  = new QPushButton("Apply");
 	start_button = new QPushButton("Start");
 
@@ -24,7 +27,9 @@ CameraSettingsWindow::CameraSettingsWindow(QString camera_label, CameraSettingsD
 	checkbox_list[CHECKBOX_AGE_PREDICTION]->setChecked(camera_settings_data.age_prediction > 0);
 	checkbox_list[CHECKBOX_HEAT_MAP_ESTIMATION]->setChecked(camera_settings_data.heat_map_estimation > 0);
 	checkbox_list[CHECKBOX_RECORD_DETECTIONS_AS_OUTPUT_FILE]->setChecked(camera_settings_data.record_detections_as_output_file > 0);
-
+    checkbox_list[CHECKBOX_LOOP_VIDEO]->setChecked(camera_settings_data.loop_video > 0);
+	checkbox_list[CHECKBOX_SKIP_FRAMES]->setChecked(camera_settings_data.skip_frames > 0);
+    
 	set_start_button_state(camera_settings_data.active);
 
 	QVBoxLayout *layout = new QVBoxLayout;
@@ -36,6 +41,8 @@ CameraSettingsWindow::CameraSettingsWindow(QString camera_label, CameraSettingsD
 	layout->addWidget(checkbox_list[CHECKBOX_AGE_PREDICTION]);
 	layout->addWidget(checkbox_list[CHECKBOX_HEAT_MAP_ESTIMATION]);
 	layout->addWidget(checkbox_list[CHECKBOX_RECORD_DETECTIONS_AS_OUTPUT_FILE]);
+	layout->addWidget(checkbox_list[CHECKBOX_LOOP_VIDEO]);
+	layout->addWidget(checkbox_list[CHECKBOX_SKIP_FRAMES]);
 
 	layout->addWidget(apply_button);
 	layout->addWidget(start_button);

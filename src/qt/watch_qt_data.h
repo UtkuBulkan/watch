@@ -13,6 +13,8 @@ public:
 	int age_prediction;
 	int heat_map_estimation;
 	int record_detections_as_output_file;
+    int loop_video;
+	int skip_frames;
 };
 
 #endif
