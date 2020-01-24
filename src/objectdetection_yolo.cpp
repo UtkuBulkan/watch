@@ -72,20 +72,21 @@ std::vector<std::string> ObjectDetector_Yolo::get_output_layer_names()
 void ObjectDetector_Yolo::draw_prediction_indicators(int classId, float confidence, int left, int top, int right, int bottom, cv::Mat& output_frame)
 {
 	syslog(LOG_DEBUG, "ObjectDetector_Yolo::draw_box Begin");
-
-	cv::rectangle(output_frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255));
+    
+	cv::rectangle(output_frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255),2, 1);
 	std::string confidence_and_class_information = cv::format("%.2f", confidence);
 	if (!get_class_labels().empty())
 	{
 		CV_Assert(classId < (int)get_class_labels().size());
+        if (get_class_labels()[classId].compare("person") != 0) return; 
 		confidence_and_class_information = get_class_labels()[classId] + ":" + confidence_and_class_information;
 	}
 
 	//Display the label at the top of the bounding box
-	int baseLine;
-	cv::Size labelSize = cv::getTextSize(confidence_and_class_information, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-	top = std::max(top, labelSize.height);
-	cv::putText(output_frame, confidence_and_class_information, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255));
+	//int baseLine;
+	//cv::Size labelSize = cv::getTextSize(confidence_and_class_information, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+	//top = std::max(top, labelSize.height);
+	//cv::putText(output_frame, confidence_and_class_information, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255));
 
 	syslog(LOG_DEBUG, "ObjectDetector_Yolo::draw_box End");
 }
@@ -134,7 +135,9 @@ void ObjectDetector_Yolo::post_process(cv::Mat& frame, cv::Mat &output_frame, st
 	{
 		int idx = indices[i];
 		cv::Rect box = boxes[idx];
-		draw_prediction_indicators(classIds[idx], confidences[idx], box.x, box.y, box.x + box.width, box.y + box.height, output_frame);
+        if (get_class_labels()[classIds[idx]].compare("person") == 0) {
+            draw_prediction_indicators(classIds[idx], confidences[idx], box.x, box.y, box.x + box.width, box.y + box.height, output_frame);
+        }
 	}
 	syslog(LOG_DEBUG, "ObjectDetector_Yolo::post_process End");
 }
