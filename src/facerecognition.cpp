@@ -132,12 +132,12 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
 	std::string predicted_string = model->getLabelInfo(predicted_label_id);
 	syslog(LOG_NOTICE, "Prediction : %d, Predicted string : %s, confidence : %lf", predicted_label_id, predicted_string.c_str(), confidence);
 
-	if(confidence > 110.0) {
+	if(confidence > 100.0) {
 		predicted_string = cv::format("%d", train_new_sample(detected_face, -1));
 		previously_detected = false;
 	} else {
         if (trained_face_count.find(predicted_string) != trained_face_count.end()) {
-            if (trained_face_count[predicted_string] < 50)  {
+            if (trained_face_count[predicted_string] < 20)  {
                 trained_face_count[predicted_string] += 1;
                 train_new_sample(detected_face, predicted_label_id);
             }
