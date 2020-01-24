@@ -144,9 +144,9 @@ std::string FaceRecognition::predict_new_sample(cv::Mat &detected_face, bool &pr
         } else {
             trained_face_count[predicted_string] = 1;
         }
-        for(std::map <std::string, int>::iterator it=trained_face_count.begin(); it!=trained_face_count.end();it++) {
-            syslog(LOG_NOTICE, "Face Index : %s - Count : %d", it->first.c_str(), it->second);
-        }
+        //for(std::map <std::string, int>::iterator it=trained_face_count.begin(); it!=trained_face_count.end();it++) {
+        //    syslog(LOG_NOTICE, "Face Index : %s - Count : %d", it->first.c_str(), it->second);
+        //}
 		previously_detected = true;
 	}
 
